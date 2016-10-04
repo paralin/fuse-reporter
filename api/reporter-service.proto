@@ -1,0 +1,22 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";
+import "github.com/fuserobotics/reporter/api/reporter.proto";
+
+message RecordStateRequest {
+  api.StateContext context = 1;
+  api.StateReport report = 2;
+}
+
+message RecordStateResponse {
+}
+
+service ReporterService {
+  rpc RecordState(RecordStateRequest) returns (RecordStateResponse) {
+    option (google.api.http) = {
+      post: "/v1/{context.component}/{context.state_id}/record"
+      body: "report"
+    };
+  };
+}

@@ -1,0 +1,104 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "github.com/fuserobotics/reporter/api/reporter-service.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/{context.component}/{context.state_id}/record": {
+      "post": {
+        "operationId": "RecordState",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiRecordStateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRecordStateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiRecordStateRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/apiStateContext"
+        },
+        "report": {
+          "$ref": "#/definitions/apiStateReport"
+        }
+      }
+    },
+    "apiRecordStateResponse": {
+      "type": "object"
+    },
+    "apiStateContext": {
+      "type": "object",
+      "properties": {
+        "component": {
+          "type": "string",
+          "format": "string"
+        },
+        "state_id": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "apiStateReport": {
+      "type": "object",
+      "properties": {
+        "json_state": {
+          "type": "string",
+          "format": "string",
+          "title": "Support json formatted report"
+        },
+        "msgpack_state": {
+          "type": "string",
+          "format": "byte",
+          "title": "Support messagepack formatted report"
+        }
+      },
+      "title": "A state report message"
+    }
+  }
+}

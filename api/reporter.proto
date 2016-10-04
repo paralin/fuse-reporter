@@ -1,0 +1,15 @@
+syntax = "proto3";
+package api;
+
+message StateContext {
+  string component = 1;
+  string state_id = 2;
+}
+
+// A state report message
+message StateReport {
+  // Support json formatted report
+  string json_state = 1;
+  // Support messagepack formatted report
+  bytes msgpack_state = 2;
+}

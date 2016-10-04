@@ -42,3 +42,8 @@ Remotes
 =======
 
 A "remote" is a `historian` instance.
+
+API
+===
+
+States are reported and stored as MessagePack binaries (to save space, rather than use JSON).
