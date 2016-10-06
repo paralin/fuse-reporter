@@ -3,6 +3,7 @@ package reporter
 import (
 	"github.com/boltdb/bolt"
 	"github.com/fuserobotics/reporter/dbproto"
+	"github.com/fuserobotics/statestream"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -13,11 +14,23 @@ var mutationBucketName []byte = []byte("mutations")
 type State struct {
 	hasEnsuredBuckets bool
 	db                *bolt.DB
+	stream            *stream.Stream
 
 	Component  *Component
 	Name       string
 	BucketName []byte
 	Data       dbproto.State
+}
+
+func (s *State) Stream() *stream.Stream {
+	if s.stream != nil {
+		return s.stream
+	}
+	nstream, err := stream.NewStream(s, s.Data.StreamConfig)
+	if err == nil {
+		s.stream = nstream
+	}
+	return s.stream
 }
 
 func (s *State) getBucket(tx *bolt.Tx) *bolt.Bucket {
