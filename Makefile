@@ -14,3 +14,5 @@ protogen:
 		--only_specified_files \
 		$${CWD}/**/*.proto
 	go install -v github.com/fuserobotics/reporter/api
+	rm ./dbproto/*.swagger.json
+	go install -v github.com/fuserobotics/reporter/dbproto

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/fuserobotics/reporter"
 	"github.com/fuserobotics/reporter/api"
 	"github.com/fuserobotics/reporter/service"
 
@@ -20,14 +21,15 @@ import (
 var RuntimeArgs struct {
 	GrpcPort int
 	HttpPort int
-
-	ConfigPath string
+	DbPath   string
 }
+
+var reporterInstance *reporter.Reporter
 
 func bindFlags() {
 	flag.IntVar(&RuntimeArgs.GrpcPort, "grpcport", 5000, "GRPC port to bind")
 	flag.IntVar(&RuntimeArgs.HttpPort, "httpport", 8085, "HTTP port to bind")
-	flag.StringVar(&RuntimeArgs.ConfigPath, "config", "", "path to config file")
+	flag.StringVar(&RuntimeArgs.DbPath, "dbpath", "reporter.db", "Database path")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`reporter
 Starts the API at the ports specified.
@@ -35,6 +37,15 @@ Flags:`)
 		flag.CommandLine.PrintDefaults()
 	}
 	flag.Parse()
+}
+
+func initReporter() error {
+	ri, err := reporter.NewReporter(RuntimeArgs.DbPath)
+	if err != nil {
+		return err
+	}
+	reporterInstance = ri
+	return nil
 }
 
 func bindEnv() {
@@ -101,11 +112,14 @@ func main() {
 	if err := verifyArgs(); err != nil {
 		glog.Fatalf("Error with args: %v\n", err)
 	}
+	if err := initReporter(); err != nil {
+		glog.Fatalf("Error initing reporter: %v\n", err)
+	}
 
 	glog.Info("Registering services...")
 
 	grpcServer := grpc.NewServer()
-	service.RegisterServer(grpcServer)
+	service.RegisterServer(grpcServer, reporterInstance)
 
 	glog.Info("Starting up services...")
 	httpEndpoint := fmt.Sprintf("0.0.0.0:%d", RuntimeArgs.HttpPort)

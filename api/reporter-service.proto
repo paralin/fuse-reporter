@@ -3,6 +3,16 @@ package api;
 
 import "google/api/annotations.proto";
 import "github.com/fuserobotics/reporter/api/reporter.proto";
+import "github.com/fuserobotics/statestream/config.proto";
+
+// Register or update a state config
+message RegisterStateRequest {
+  api.StateContext context = 1;
+  stream.Config stream_config = 2;
+}
+
+message RegisterStateResponse {
+}
 
 message RecordStateRequest {
   api.StateContext context = 1;
