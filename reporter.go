@@ -43,6 +43,20 @@ func (r *Reporter) GetComponent(componentName string) (*Component, error) {
 	if component == nil {
 		return nil, ComponentNotExistError
 	}
+	r.Components[componentName] = component
+	return component, nil
+}
+
+func (r *Reporter) CreateComponentIfNotExists(componentName string) (*Component, error) {
+	if component, err := r.GetComponent(componentName); err == nil {
+		return component, err
+	}
+
+	component, err := CreateComponent(r.db, r.ComponentList, componentName)
+	if err != nil {
+		return nil, err
+	}
+	r.Components[componentName] = component
 	return component, nil
 }
 
@@ -66,5 +80,10 @@ func NewReporter(dbPath string) (*Reporter, error) {
 	if err := res.loadComponentList(); err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return res, nil
+}
+
+func (r *Reporter) Close() {
+	r.db.Close()
+	r.Components = nil
 }

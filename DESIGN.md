@@ -24,7 +24,7 @@ Each component has a bucket (named `cmp.{component}`):
 
  - `component`: component level key, lists states
 
-Each state has a bucket in the component bucket named by the state name.
+Each state has a bucket in the component bucket (named `st.{statename}`).
 
  - `state`: state level key, lists timestamps
 
