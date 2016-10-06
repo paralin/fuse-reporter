@@ -15,6 +15,62 @@
     "application/json"
   ],
   "paths": {
+    "/v1/all/states": {
+      "get": {
+        "operationId": "ListStates",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiListStatesResponse"
+            }
+          }
+        },
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
+    "/v1/{context.component}/{context.state_id}/create": {
+      "post": {
+        "operationId": "RegisterState",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiRegisterStateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRegisterStateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
     "/v1/{context.component}/{context.state_id}/record": {
       "post": {
         "operationId": "RecordState",
@@ -57,6 +113,17 @@
     }
   },
   "definitions": {
+    "apiListStatesRequest": {
+      "type": "object"
+    },
+    "apiListStatesResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/apiStateList"
+        }
+      }
+    },
     "apiRecordStateRequest": {
       "type": "object",
       "properties": {
@@ -71,6 +138,21 @@
     "apiRecordStateResponse": {
       "type": "object"
     },
+    "apiRegisterStateRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/apiStateContext"
+        },
+        "stream_config": {
+          "$ref": "#/definitions/streamConfig"
+        }
+      },
+      "title": "Register or update a state config"
+    },
+    "apiRegisterStateResponse": {
+      "type": "object"
+    },
     "apiStateContext": {
       "type": "object",
       "properties": {
@@ -79,6 +161,44 @@
           "format": "string"
         },
         "state_id": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "apiStateList": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiStateListComponent"
+          }
+        }
+      }
+    },
+    "apiStateListComponent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "format": "string"
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiStateListState"
+          }
+        }
+      }
+    },
+    "apiStateListState": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/streamConfig"
+        },
+        "name": {
           "type": "string",
           "format": "string"
         }
@@ -99,6 +219,29 @@
         }
       },
       "title": "A state report message"
+    },
+    "streamConfig": {
+      "type": "object",
+      "properties": {
+        "record_rate": {
+          "$ref": "#/definitions/streamRateConfig"
+        }
+      }
+    },
+    "streamRateConfig": {
+      "type": "object",
+      "properties": {
+        "change_frequency": {
+          "type": "number",
+          "format": "double",
+          "title": "Minimum time between mutations in nanoseconds"
+        },
+        "keyframe_frequency": {
+          "type": "number",
+          "format": "double",
+          "title": "Minimum time between keyframes in nanoseconds"
+        }
+      }
     }
   }
 }

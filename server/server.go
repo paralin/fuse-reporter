@@ -6,7 +6,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/fuserobotics/reporter"
 	"github.com/fuserobotics/reporter/api"
@@ -133,6 +135,9 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		// Setup HTTP service
 		if err := runHttpService(httpEndpoint, listenStr, ctx); err != nil {
@@ -143,7 +148,14 @@ func main() {
 		}()
 	}()
 
-	// Start GRPC service
-	glog.Infof("grpc listening on %s", listenStr)
-	grpcServer.Serve(lis)
+	go func() {
+		// Start GRPC service
+		glog.Infof("grpc listening on %s", listenStr)
+		grpcServer.Serve(lis)
+	}()
+
+	<-sigs
+
+	glog.Info("Exiting...")
+	grpcServer.GracefulStop()
 }

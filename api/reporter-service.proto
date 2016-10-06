@@ -22,11 +22,29 @@ message RecordStateRequest {
 message RecordStateResponse {
 }
 
+message ListStatesRequest {
+}
+
+message ListStatesResponse {
+  StateList list = 1;
+}
+
 service ReporterService {
+  rpc RegisterState(RegisterStateRequest) returns (RegisterStateResponse) {
+    option (google.api.http) = {
+      post: "/v1/{context.component}/{context.state_id}/create"
+      body: "stream_config"
+    };
+  };
   rpc RecordState(RecordStateRequest) returns (RecordStateResponse) {
     option (google.api.http) = {
       post: "/v1/{context.component}/{context.state_id}/record"
       body: "report"
     };
   };
+  rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
+    option (google.api.http) = {
+      get: "/v1/all/states"
+    };
+  }
 }

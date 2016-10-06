@@ -36,3 +36,13 @@ func (req *RecordStateRequest) Validate() error {
 
 	return nil
 }
+
+func (req *RegisterStateRequest) Validate() error {
+	if err := req.Context.Validate(); err != nil {
+		return err
+	}
+	if err := req.StreamConfig.Validate(); err != nil {
+		return err
+	}
+	return nil
+}

@@ -1,6 +1,8 @@
 syntax = "proto3";
 package api;
 
+import "github.com/fuserobotics/statestream/config.proto";
+
 message StateContext {
   string component = 1;
   string state_id = 2;
@@ -12,4 +14,18 @@ message StateReport {
   string json_state = 1;
   // Support messagepack formatted report
   bytes msgpack_state = 2;
+}
+
+message StateList {
+  repeated StateListComponent components = 1;
+}
+
+message StateListComponent {
+  string name = 1;
+  repeated StateListState states = 2;
+}
+
+message StateListState {
+  string name = 1;
+  stream.Config config = 2;
 }
