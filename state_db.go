@@ -11,6 +11,8 @@ import (
 	"github.com/fuserobotics/statestream"
 )
 
+var entryTypeKey string = "$t"
+
 // Retrieve the first snapshot before timestamp. Return nil for no data.
 func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, error) {
 	snapshotCount := len(s.Data.SnapshotTimestamp)
@@ -23,94 +25,88 @@ func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, err
 	if idx < 0 || idx >= snapshotCount {
 		return nil, nil
 	}
-	snapshotTime := s.Data.SnapshotTimestamp[idx]
+	return s.getEntry(s.Data.SnapshotTimestamp[idx])
+}
+
+func (s *State) getEntry(timestamp int64) (*stream.StreamEntry, error) {
 	var streamEntry interface{}
 	err := s.db.View(func(tx *bolt.Tx) error {
-		bkt := s.getSnapshotBucket(tx)
-		data := bkt.Get([]byte(strconv.FormatInt(snapshotTime, 10)))
+		bkt := s.getEntryBucket(tx)
+		data := bkt.Get([]byte(strconv.FormatInt(timestamp, 10)))
 		if len(data) == 0 {
 			return errors.New("Data for timestamp not found.")
 		}
 		return json.Unmarshal(data, &streamEntry)
 	})
+	if err != nil {
+		return nil, err
+	}
+	streamEntryData := streamEntry.(map[string]interface{})
+	entryType := stream.StreamEntryType(streamEntryData[entryTypeKey].(float64))
+	delete(streamEntryData, entryTypeKey)
 	entry := &stream.StreamEntry{
-		Type:      stream.StreamEntrySnapshot,
-		Data:      streamEntry.(map[string]interface{}),
-		Timestamp: NumberToTime(snapshotTime),
+		Type:      entryType,
+		Data:      streamEntryData,
+		Timestamp: NumberToTime(timestamp),
 	}
 	return entry, err
 }
 
-// Retrieve the first mutation after timestamp. Return nil for no data.
-func (s *State) GetMutationAfter(timestamp time.Time) (*stream.StreamEntry, error) {
-	mutationCount := len(s.Data.MutationTimestamp)
-	if mutationCount == 0 {
+// Retrieve the first entry after timestamp. Return nil for no data.
+func (s *State) GetEntryAfter(timestamp time.Time, filterType stream.StreamEntryType) (*stream.StreamEntry, error) {
+	var tsArr []int64
+	if filterType == stream.StreamEntrySnapshot {
+		tsArr = s.Data.SnapshotTimestamp
+	} else {
+		tsArr = s.Data.AllTimestamp
+	}
+	entryCount := len(tsArr)
+	if entryCount == 0 {
 		return nil, nil
 	}
-	idx := sort.Search(mutationCount, func(i int) bool {
-		return s.Data.MutationTimestamp[i] > TimeToNumber(timestamp)
+	timeNum := TimeToNumber(timestamp)
+	idx := sort.Search(entryCount, func(i int) bool {
+		return tsArr[i] > timeNum
 	})
-	if idx < 0 || idx >= mutationCount {
+	if idx < 0 || idx >= entryCount {
 		return nil, nil
 	}
-	mutationTime := s.Data.MutationTimestamp[idx]
-	var streamEntry interface{}
-	err := s.db.View(func(tx *bolt.Tx) error {
-		bkt := s.getMutationBucket(tx)
-		data := bkt.Get([]byte(strconv.FormatInt(mutationTime, 10)))
-		if len(data) == 0 {
-			return errors.New("Data for timestamp not found.")
-		}
-		return json.Unmarshal(data, &streamEntry)
-	})
-	entry := &stream.StreamEntry{
-		Type:      stream.StreamEntryMutation,
-		Data:      streamEntry.(map[string]interface{}),
-		Timestamp: NumberToTime(mutationTime),
-	}
-	return entry, err
+	return s.getEntry(tsArr[idx])
 }
 
-// Store a stream entry.
-func (s *State) SaveEntry(entry *stream.StreamEntry) error {
+func (s *State) writeEntryToDb(entry *stream.StreamEntry, isReplacement bool) error {
 	jsonData := map[string]interface{}(entry.Data)
+	jsonData[entryTypeKey] = int(entry.Type)
 	data, err := json.Marshal(&jsonData)
+	delete(jsonData, entryTypeKey)
 	if err != nil {
 		return err
 	}
 	return s.db.Update(func(tx *bolt.Tx) error {
-		var bkt *bolt.Bucket
+		bkt := s.getEntryBucket(tx)
 		timeNum := TimeToNumber(entry.Timestamp)
-		switch entry.Type {
-		case stream.StreamEntrySnapshot:
-			bkt = s.getSnapshotBucket(tx)
-			s.Data.SnapshotTimestamp = append(s.Data.SnapshotTimestamp, timeNum)
-		case stream.StreamEntryMutation:
-			bkt = s.getMutationBucket(tx)
-			s.Data.MutationTimestamp = append(s.Data.MutationTimestamp, timeNum)
+		if !isReplacement {
+			s.Data.AllTimestamp = append(s.Data.AllTimestamp, timeNum)
+			if entry.Type == stream.StreamEntrySnapshot {
+				s.Data.SnapshotTimestamp = append(s.Data.SnapshotTimestamp, timeNum)
+			}
 		}
 		if err := bkt.Put([]byte(strconv.FormatInt(TimeToNumber(entry.Timestamp), 10)), data); err != nil {
 			return err
+		}
+		if isReplacement {
+			return nil
 		}
 		return s.writeToDbWithTransaction(tx)
 	})
 }
 
+// Store a stream entry.
+func (s *State) SaveEntry(entry *stream.StreamEntry) error {
+	return s.writeEntryToDb(entry, false)
+}
+
 // Amend an old entry
 func (s *State) AmendEntry(entry *stream.StreamEntry, oldTimestamp time.Time) error {
-	jsonData := map[string]interface{}(entry.Data)
-	data, err := json.Marshal(&jsonData)
-	if err != nil {
-		return err
-	}
-	return s.db.Update(func(tx *bolt.Tx) error {
-		var bkt *bolt.Bucket
-		switch entry.Type {
-		case stream.StreamEntrySnapshot:
-			bkt = s.getSnapshotBucket(tx)
-		case stream.StreamEntryMutation:
-			bkt = s.getMutationBucket(tx)
-		}
-		return bkt.Put([]byte(strconv.FormatInt(TimeToNumber(oldTimestamp), 10)), data)
-	})
+	return s.writeEntryToDb(entry, true)
 }

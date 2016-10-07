@@ -8,8 +8,7 @@ import (
 )
 
 var stateDetailsKey []byte = []byte("state")
-var snapshotBucketName []byte = []byte("snapshots")
-var mutationBucketName []byte = []byte("mutations")
+var entryBucketName []byte = []byte("entries")
 
 type State struct {
 	hasEnsuredBuckets bool
@@ -39,14 +38,9 @@ func (s *State) getBucket(tx *bolt.Tx) *bolt.Bucket {
 	return sbkt
 }
 
-func (s *State) getSnapshotBucket(tx *bolt.Tx) *bolt.Bucket {
+func (s *State) getEntryBucket(tx *bolt.Tx) *bolt.Bucket {
 	sbkt := s.getBucket(tx)
-	return sbkt.Bucket(snapshotBucketName)
-}
-
-func (s *State) getMutationBucket(tx *bolt.Tx) *bolt.Bucket {
-	sbkt := s.getBucket(tx)
-	return sbkt.Bucket(mutationBucketName)
+	return sbkt.Bucket(entryBucketName)
 }
 
 func (s *State) marshal() ([]byte, error) {
@@ -73,10 +67,7 @@ func (s *State) writeToDbWithTransaction(tx *bolt.Tx) error {
 	if s.hasEnsuredBuckets {
 		return nil
 	}
-	if _, err := bkt.CreateBucketIfNotExists(snapshotBucketName); err != nil {
-		return err
-	}
-	if _, err := bkt.CreateBucketIfNotExists(mutationBucketName); err != nil {
+	if _, err := bkt.CreateBucketIfNotExists(entryBucketName); err != nil {
 		return err
 	}
 	s.hasEnsuredBuckets = true

@@ -13,6 +13,6 @@ message Component {
 
 message State {
   repeated int64 snapshot_timestamp = 1 [packed=true];
-  repeated int64 mutation_timestamp = 2 [packed=true];
+  repeated int64 all_timestamp = 2 [packed=true];
   stream.Config stream_config = 3;
 }
