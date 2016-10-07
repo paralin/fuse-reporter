@@ -29,6 +29,15 @@ message ListStatesResponse {
   StateList list = 1;
 }
 
+message GetStateRequest {
+  api.StateContext context = 1;
+  StateQuery query = 2;
+}
+
+message GetStateResponse {
+  StateReport state = 1;
+}
+
 service ReporterService {
   rpc RegisterState(RegisterStateRequest) returns (RegisterStateResponse) {
     option (google.api.http) = {
@@ -45,6 +54,11 @@ service ReporterService {
   rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
     option (google.api.http) = {
       get: "/v1/all/states"
+    };
+  }
+  rpc GetState(GetStateRequest) returns (GetStateResponse) {
+    option (google.api.http) = {
+      get: "/v1/{context.component}/{context.state_id}"
     };
   }
 }

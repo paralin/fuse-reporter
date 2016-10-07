@@ -61,23 +61,28 @@ func (s *State) LoadFromDb() error {
 	})
 }
 
-func (s *State) WriteToDb() error {
-	return s.db.Update(func(tx *bolt.Tx) error {
-		bkt := s.getBucket(tx)
-		data, err := s.marshal()
-		if err != nil || s.hasEnsuredBuckets {
-			return err
-		}
-		if err := bkt.Put(stateDetailsKey, data); err != nil {
-			return err
-		}
-		if _, err := bkt.CreateBucketIfNotExists(snapshotBucketName); err != nil {
-			return err
-		}
-		if _, err := bkt.CreateBucketIfNotExists(mutationBucketName); err != nil {
-			return err
-		}
-		s.hasEnsuredBuckets = true
+func (s *State) writeToDbWithTransaction(tx *bolt.Tx) error {
+	bkt := s.getBucket(tx)
+	data, err := s.marshal()
+	if err != nil {
+		return err
+	}
+	if err := bkt.Put(stateDetailsKey, data); err != nil {
+		return err
+	}
+	if s.hasEnsuredBuckets {
 		return nil
-	})
+	}
+	if _, err := bkt.CreateBucketIfNotExists(snapshotBucketName); err != nil {
+		return err
+	}
+	if _, err := bkt.CreateBucketIfNotExists(mutationBucketName); err != nil {
+		return err
+	}
+	s.hasEnsuredBuckets = true
+	return nil
+}
+
+func (s *State) WriteToDb() error {
+	return s.db.Update(s.writeToDbWithTransaction)
 }

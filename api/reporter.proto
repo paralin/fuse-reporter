@@ -12,8 +12,7 @@ message StateContext {
 message StateReport {
   // Support json formatted report
   string json_state = 1;
-  // Support messagepack formatted report
-  bytes msgpack_state = 2;
+  int64 timestamp = 2;
 }
 
 message StateList {
@@ -28,4 +27,8 @@ message StateListComponent {
 message StateListState {
   string name = 1;
   stream.Config config = 2;
+}
+
+message StateQuery {
+  int64 time = 1;
 }

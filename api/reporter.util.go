@@ -14,7 +14,7 @@ func (ctx *StateContext) Validate() error {
 
 func (report *StateReport) Validate() error {
 	// Possibly make a null value allowed.
-	if report.JsonState == "" && len(report.MsgpackState) == 0 {
+	if report.JsonState == "" {
 		return errors.New("You must include some kind of state in the report.")
 	}
 	return nil
@@ -42,6 +42,23 @@ func (req *RegisterStateRequest) Validate() error {
 		return err
 	}
 	if err := req.StreamConfig.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (req *StateQuery) Validate() error {
+	return nil
+}
+
+func (req *GetStateRequest) Validate() error {
+	if err := req.Context.Validate(); err != nil {
+		return err
+	}
+	if req.Query == nil {
+		req.Query = &StateQuery{}
+	}
+	if err := req.Query.Validate(); err != nil {
 		return err
 	}
 	return nil

@@ -31,6 +31,38 @@
         ]
       }
     },
+    "/v1/{context.component}/{context.state_id}": {
+      "get": {
+        "operationId": "GetState",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiGetStateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
     "/v1/{context.component}/{context.state_id}/create": {
       "post": {
         "operationId": "RegisterState",
@@ -113,6 +145,25 @@
     }
   },
   "definitions": {
+    "apiGetStateRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/apiStateContext"
+        },
+        "query": {
+          "$ref": "#/definitions/apiStateQuery"
+        }
+      }
+    },
+    "apiGetStateResponse": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/apiStateReport"
+        }
+      }
+    },
     "apiListStatesRequest": {
       "type": "object"
     },
@@ -204,6 +255,15 @@
         }
       }
     },
+    "apiStateQuery": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "apiStateReport": {
       "type": "object",
       "properties": {
@@ -212,10 +272,9 @@
           "format": "string",
           "title": "Support json formatted report"
         },
-        "msgpack_state": {
+        "timestamp": {
           "type": "string",
-          "format": "byte",
-          "title": "Support messagepack formatted report"
+          "format": "int64"
         }
       },
       "title": "A state report message"
@@ -232,14 +291,14 @@
       "type": "object",
       "properties": {
         "change_frequency": {
-          "type": "number",
-          "format": "double",
-          "title": "Minimum time between mutations in nanoseconds"
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
         },
         "keyframe_frequency": {
-          "type": "number",
-          "format": "double",
-          "title": "Minimum time between keyframes in nanoseconds"
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between keyframes in milliseconds"
         }
       }
     }

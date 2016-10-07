@@ -14,10 +14,13 @@ import (
 // Retrieve the first snapshot before timestamp. Return nil for no data.
 func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, error) {
 	snapshotCount := len(s.Data.SnapshotTimestamp)
+	if snapshotCount == 0 {
+		return nil, nil
+	}
 	idx := sort.Search(snapshotCount, func(i int) bool {
-		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < timestamp.UnixNano()
+		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < TimeToNumber(timestamp)
 	})
-	if idx < 0 {
+	if idx < 0 || idx >= snapshotCount {
 		return nil, nil
 	}
 	snapshotTime := s.Data.SnapshotTimestamp[idx]
@@ -33,7 +36,7 @@ func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, err
 	entry := &stream.StreamEntry{
 		Type:      stream.StreamEntrySnapshot,
 		Data:      streamEntry.(map[string]interface{}),
-		Timestamp: time.Unix(0, snapshotTime),
+		Timestamp: NumberToTime(snapshotTime),
 	}
 	return entry, err
 }
@@ -41,10 +44,13 @@ func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, err
 // Retrieve the first mutation after timestamp. Return nil for no data.
 func (s *State) GetMutationAfter(timestamp time.Time) (*stream.StreamEntry, error) {
 	mutationCount := len(s.Data.MutationTimestamp)
+	if mutationCount == 0 {
+		return nil, nil
+	}
 	idx := sort.Search(mutationCount, func(i int) bool {
-		return s.Data.MutationTimestamp[i] > timestamp.UnixNano()
+		return s.Data.MutationTimestamp[i] > TimeToNumber(timestamp)
 	})
-	if idx < 0 {
+	if idx < 0 || idx >= mutationCount {
 		return nil, nil
 	}
 	mutationTime := s.Data.MutationTimestamp[idx]
@@ -60,7 +66,7 @@ func (s *State) GetMutationAfter(timestamp time.Time) (*stream.StreamEntry, erro
 	entry := &stream.StreamEntry{
 		Type:      stream.StreamEntryMutation,
 		Data:      streamEntry.(map[string]interface{}),
-		Timestamp: time.Unix(0, mutationTime),
+		Timestamp: NumberToTime(mutationTime),
 	}
 	return entry, err
 }
@@ -74,13 +80,19 @@ func (s *State) SaveEntry(entry *stream.StreamEntry) error {
 	}
 	return s.db.Update(func(tx *bolt.Tx) error {
 		var bkt *bolt.Bucket
+		timeNum := TimeToNumber(entry.Timestamp)
 		switch entry.Type {
 		case stream.StreamEntrySnapshot:
 			bkt = s.getSnapshotBucket(tx)
+			s.Data.SnapshotTimestamp = append(s.Data.SnapshotTimestamp, timeNum)
 		case stream.StreamEntryMutation:
 			bkt = s.getMutationBucket(tx)
+			s.Data.MutationTimestamp = append(s.Data.MutationTimestamp, timeNum)
 		}
-		return bkt.Put([]byte(strconv.FormatInt(entry.Timestamp.UnixNano(), 10)), data)
+		if err := bkt.Put([]byte(strconv.FormatInt(TimeToNumber(entry.Timestamp), 10)), data); err != nil {
+			return err
+		}
+		return s.writeToDbWithTransaction(tx)
 	})
 }
 
@@ -99,6 +111,6 @@ func (s *State) AmendEntry(entry *stream.StreamEntry, oldTimestamp time.Time) er
 		case stream.StreamEntryMutation:
 			bkt = s.getMutationBucket(tx)
 		}
-		return bkt.Put([]byte(strconv.FormatInt(oldTimestamp.UnixNano(), 10)), data)
+		return bkt.Put([]byte(strconv.FormatInt(TimeToNumber(oldTimestamp), 10)), data)
 	})
 }
