@@ -41,9 +41,52 @@ A component can set a state object. Reporter will determine what changed from th
 Remotes
 =======
 
-A "remote" is a `historian` instance.
+A "remote" is a remote api that is interested in tracking a local state stream. A remote should implement the `ReporterRemoteService` as declared in the `remote` sub-package of this repo.
+
+A remote is configured in reporter with the following parameters:
+
+ - Endpoint: how to get to the remote.
+
+That's it. Internally the reporter will, for each remote, call the GetStreamInterest endpoint to ask which streams the remote is interested in receiving. This will return an object describing which streams at what RateConfigs the remote is interested in receiving, as well as an nonce number with the version of this config.
+
+The reporter will then use the `statestream` `EntryEmitter` functionality to do the following:
+
+ - Create a cursor at the earliest time the remote is interested in knowing about.
+ - Fast forward the cursor to now, and record all of the stream entries emitted by the `EntryEmitter` to the remote's stream.
+ - From then onward, keep the remote's stream in sync with the writer.
+
+Then, in another goroutine:
+
+ - Connect to the remote (use an internal complex connection state / backoff mechanism)
+ - Start at the oldest unsynced stream entry, and push it to the remote, and continue as such till the latest. For each successful push, remove the entry from the local push queue.
+ - As states are added to the push queue, redo the above.
+ - Each push call returns the nonce of the configuration for the remote, and if this has changed, the reporter will check the config endpoint again, grab the new config, apply it to the `EntryEmitter` and all future pushes will have the new config applied.
+
+This will allow a remote to achieve the following:
+
+ - Receive a stream of state change entries with the desired rate config.
+ - Stay synced with the latest state.
+ - Pull data / history all the way since a desired starting point.
+
+The remote will need to know some identity information about the reporter in order to make an educated decision about what streams it's interested in receiving. This identifier, in FuseCloud's case, would be something like `plane_1` - the hostname of the machine. The reporter on default will use the hostname of the machine for this identifier, but otherwise can use an identifier given on the command line.
+
+Remote Authentication
+=====================
+
+This will not be initially implemented, but added down the line.
+
+When calling GetRemoteConfig the reporter gives an identifier. This identifier needs to be authenticated to make sure reporters can't be forged.
 
 API
 ===
 
-States are reported and stored as MessagePack binaries (to save space, rather than use JSON).
+Someone might be interested in:
+
+ - View state at a given time (already done)
+ - View latest state (live changes)
+
+In the browser, we might be interested in fast forwarding / rewinding time, generating plots, etc. To do this, we will want to get stream entries with a certain resolution between two times. Propose adding an API to a cursor that will read forward in a stream and emit stream events with a requested rate configuration.
+
+Other things that could be useful:
+
+ - Filter the emitted events to be sent down the pipe, then, send widely spaced snapshots first followed by more detailed mutations.

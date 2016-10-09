@@ -1,0 +1,20 @@
+syntax = "proto3";
+package remote;
+
+import "google/api/annotations.proto";
+import "github.com/fuserobotics/reporter/api/reporter.proto";
+import "github.com/fuserobotics/statestream/config.proto";
+
+message GetRemoteConfigRequest {
+}
+
+message GetRemoteConfigResponse {
+}
+
+service ReporterRemoteService {
+  rpc GetRemoteConfig(GetRemoteConfigRequest) returns (GetRemoteConfigResponse) {
+    option (google.api.http) = {
+      get: "/v1/remote/config"
+    };
+  };
+}
