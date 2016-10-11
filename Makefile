@@ -1,8 +1,5 @@
 all: protogen
-
-protogen:
-	export CWD=$$(pwd) && \
-	cd $${GOPATH}/src && \
+PROTOWRAP=\
 	protowrap \
 		-I $${GOPATH}/src \
 		-I $${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
@@ -11,9 +8,14 @@ protogen:
 		--swagger_out=logtostderr=true:. \
 		--proto_path $${GOPATH}/src \
 		--print_structure \
-		--only_specified_files \
-		$${CWD}/**/*.proto
+		--only_specified_files
+
+protogen:
+	export CWD=$$(pwd) && \
+	cd $${GOPATH}/src && \
+		$(PROTOWRAP) $${CWD}/api/*.proto && \
+		$(PROTOWRAP) $${CWD}/remote/*.proto
 	go install -v github.com/fuserobotics/reporter/api
-	rm ./dbproto/*.swagger.json
+	# rm ./dbproto/*.swagger.json
 	go install -v github.com/fuserobotics/reporter/dbproto
-	go install -v github.com/fuserobotics/reporter/remote
+	# go install -v github.com/fuserobotics/reporter/remote

@@ -2,19 +2,54 @@ syntax = "proto3";
 package remote;
 
 import "google/api/annotations.proto";
-import "github.com/fuserobotics/reporter/api/reporter.proto";
-import "github.com/fuserobotics/statestream/config.proto";
+// import "github.com/fuserobotics/reporter/api/reporter.proto";
+// import "github.com/fuserobotics/statestream/config.proto";
+
+message RemoteStreamEntry {
+  int64 timestamp = 1;
+  int32 entry_type = 2;
+  string json_data = 3;
+}
+
+message RemoteStreamConfig {
+  int32 crc32 = 1;
+}
+
+message RequestContext {
+  string host_identifier = 1;
+  string component_id = 2;
+  string state_id = 3;
+}
 
 message GetRemoteConfigRequest {
+  RequestContext context = 1;
 }
 
 message GetRemoteConfigResponse {
+  RemoteStreamConfig config = 1;
+}
+
+message PushStreamEntryRequest {
+  RequestContext context = 1;
+  RemoteStreamEntry entry = 2;
+  int32 config_crc32 = 3;
+}
+
+message PushStreamEntryResponse {
+  // If the crc32 provided is wrong, will return config
+  RemoteStreamConfig config = 1;
 }
 
 service ReporterRemoteService {
   rpc GetRemoteConfig(GetRemoteConfigRequest) returns (GetRemoteConfigResponse) {
     option (google.api.http) = {
       get: "/v1/remote/config"
+    };
+  };
+  rpc PushStreamEntry(PushStreamEntryRequest) returns (GetRemoteConfigResponse) {
+    option (google.api.http) = {
+      post: "/v1/remote/{component_id}/{state_id}/push"
+      body: "*"
     };
   };
 }
