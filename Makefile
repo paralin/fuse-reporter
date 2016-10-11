@@ -13,9 +13,8 @@ PROTOWRAP=\
 protogen:
 	export CWD=$$(pwd) && \
 	cd $${GOPATH}/src && \
-		$(PROTOWRAP) $${CWD}/api/*.proto && \
-		$(PROTOWRAP) $${CWD}/remote/*.proto
+		$(PROTOWRAP) $${CWD}/**/*.proto
 	go install -v github.com/fuserobotics/reporter/api
-	# rm ./dbproto/*.swagger.json
+	rm ./dbproto/*.swagger.json
 	go install -v github.com/fuserobotics/reporter/dbproto
-	# go install -v github.com/fuserobotics/reporter/remote
+	go install -v github.com/fuserobotics/reporter/remote

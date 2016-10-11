@@ -1,0 +1,160 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "github.com/fuserobotics/reporter/remote/remote-service.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/remote/config": {
+      "get": {
+        "operationId": "GetRemoteConfig",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/remoteGetRemoteConfigResponse"
+            }
+          }
+        },
+        "tags": [
+          "ReporterRemoteService"
+        ]
+      }
+    },
+    "/v1/remote/{context.component_id}/{context.state_id}/push": {
+      "post": {
+        "operationId": "PushStreamEntry",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/remotePushStreamEntryResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/remotePushStreamEntryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ReporterRemoteService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "remoteGetRemoteConfigRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/remoteRequestContext"
+        }
+      }
+    },
+    "remoteGetRemoteConfigResponse": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/remoteRemoteStreamConfig"
+        }
+      }
+    },
+    "remotePushStreamEntryRequest": {
+      "type": "object",
+      "properties": {
+        "config_crc32": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "context": {
+          "$ref": "#/definitions/remoteRequestContext"
+        },
+        "entry": {
+          "$ref": "#/definitions/remoteRemoteStreamEntry"
+        }
+      }
+    },
+    "remotePushStreamEntryResponse": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/remoteRemoteStreamConfig",
+          "title": "If the crc32 provided is wrong, will return config"
+        }
+      }
+    },
+    "remoteRemoteStreamConfig": {
+      "type": "object",
+      "properties": {
+        "crc32": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "remoteRemoteStreamEntry": {
+      "type": "object",
+      "properties": {
+        "entry_type": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "json_data": {
+          "type": "string",
+          "format": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "remoteRequestContext": {
+      "type": "object",
+      "properties": {
+        "component_id": {
+          "type": "string",
+          "format": "string"
+        },
+        "host_identifier": {
+          "type": "string",
+          "format": "string"
+        },
+        "state_id": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    }
+  }
+}

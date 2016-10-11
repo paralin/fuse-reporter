@@ -45,11 +45,11 @@ service ReporterRemoteService {
     option (google.api.http) = {
       get: "/v1/remote/config"
     };
-  };
-  rpc PushStreamEntry(PushStreamEntryRequest) returns (GetRemoteConfigResponse) {
+  }
+  rpc PushStreamEntry(PushStreamEntryRequest) returns (PushStreamEntryResponse) {
     option (google.api.http) = {
-      post: "/v1/remote/{component_id}/{state_id}/push"
+      post: "/v1/remote/{context.component_id}/{context.state_id}/push"
       body: "*"
     };
-  };
+  }
 }
