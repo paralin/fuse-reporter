@@ -49,16 +49,16 @@ A remote is configured in reporter with the following parameters:
 
 That's it. Internally the reporter will, for each remote, call the GetStreamInterest endpoint to ask which streams the remote is interested in receiving. This will return an object describing which streams at what RateConfigs the remote is interested in receiving, as well as an nonce number with the version of this config.
 
-The reporter will then use the `statestream` `EntryEmitter` functionality to do the following:
+The reporter will then "backfill" the remote stream:
 
- - Create a cursor at the earliest time the remote is interested in knowing about.
- - Fast forward the cursor to now, and record all of the stream entries emitted by the `EntryEmitter` to the remote's stream.
+ - Start at the latest timestamp of the remote
+ - Write all events in the stream to the remote stream
  - From then onward, keep the remote's stream in sync with the writer.
 
 Then, in another goroutine:
 
  - Connect to the remote (use an internal complex connection state / backoff mechanism)
- - Start at the oldest unsynced stream entry, and push it to the remote, and continue as such till the latest. For each successful push, remove the entry from the local push queue.
+ - Start at the oldest unsynced stream entry, and push it to the remote, and continue as such till the latest. For each successful push, remove the entry from the local stream.
  - As states are added to the push queue, redo the above.
  - Each push call returns the nonce of the configuration for the remote, and if this has changed, the reporter will check the config endpoint again, grab the new config, apply it to the `EntryEmitter` and all future pushes will have the new config applied.
 
