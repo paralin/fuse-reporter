@@ -16,3 +16,22 @@ message State {
   repeated int64 all_timestamp = 2 [packed=true];
   stream.Config stream_config = 3;
 }
+
+message RemoteList {
+  repeated string remote_id = 1;
+}
+
+message Remote {
+  string id = 1;
+  RemoteConfig config = 2;
+  repeated RemoteState state = 3;
+}
+
+message RemoteConfig {
+  string endpoint = 1;
+}
+
+message RemoteState {
+  string component_name = 1;
+  string state_name = 2;
+}
