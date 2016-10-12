@@ -27,7 +27,8 @@ type Component struct {
 }
 
 func (c *Component) getBucket(tx *bolt.Tx) *bolt.Bucket {
-	return tx.Bucket(c.BucketName)
+	pbkt := c.ComponentList.getBucket(tx)
+	return pbkt.Bucket(c.BucketName)
 }
 
 func (c *Component) LoadFromDb(db *bolt.DB) error {
@@ -130,7 +131,8 @@ func LoadComponent(db *bolt.DB, componentList *ComponentList, name string) (*Com
 func CreateComponent(db *bolt.DB, componentList *ComponentList, name string) (*Component, error) {
 	res := newComponent(db, componentList, name)
 	err := db.Update(func(tx *bolt.Tx) error {
-		bkt, err := tx.CreateBucketIfNotExists(res.BucketName)
+		pbkt := componentList.getBucket(tx)
+		bkt, err := pbkt.CreateBucketIfNotExists(res.BucketName)
 		if err != nil {
 			return err
 		}

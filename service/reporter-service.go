@@ -22,7 +22,7 @@ func (s *ReporterServiceServer) RecordState(c context.Context, req *api.RecordSt
 		return nil, err
 	}
 
-	component, err := s.Reporter.GetComponent(req.Context.Component)
+	component, err := s.Reporter.LocalTree.GetComponent(req.Context.Component)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (s *ReporterServiceServer) RegisterState(c context.Context, req *api.Regist
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
-	component, err := s.Reporter.CreateComponentIfNotExists(req.Context.Component)
+	component, err := s.Reporter.LocalTree.CreateComponentIfNotExists(req.Context.Component)
 	if err != nil {
 		return nil, err
 	}
@@ -79,30 +79,13 @@ func (s *ReporterServiceServer) RegisterState(c context.Context, req *api.Regist
 }
 
 func (s *ReporterServiceServer) ListStates(c context.Context, req *api.ListStatesRequest) (*api.ListStatesResponse, error) {
-	res := &api.ListStatesResponse{
-		List: &api.StateList{
-			Components: make([]*api.StateListComponent, len(s.Reporter.ComponentList.Data.ComponentName)),
-		},
+	list, err := buildStateList(s.Reporter.LocalTree)
+	if err != nil {
+		return nil, err
 	}
-	for i, componentName := range s.Reporter.ComponentList.Data.ComponentName {
-		cmp, err := s.Reporter.GetComponent(componentName)
-		if err != nil {
-			return nil, err
-		}
-		slc := &api.StateListComponent{Name: componentName, States: make([]*api.StateListState, len(cmp.Data.StateName))}
-		res.List.Components[i] = slc
-		for is, stateName := range cmp.Data.StateName {
-			state, err := cmp.GetState(stateName)
-			if err != nil {
-				return nil, err
-			}
-			slc.States[is] = &api.StateListState{
-				Name:   stateName,
-				Config: state.Data.StreamConfig,
-			}
-		}
-	}
-	return res, nil
+	return &api.ListStatesResponse{
+		List: list,
+	}, nil
 }
 
 func (s *ReporterServiceServer) GetState(c context.Context, req *api.GetStateRequest) (*api.GetStateResponse, error) {
@@ -110,7 +93,7 @@ func (s *ReporterServiceServer) GetState(c context.Context, req *api.GetStateReq
 		return nil, err
 	}
 
-	component, err := s.Reporter.GetComponent(req.Context.Component)
+	component, err := s.Reporter.LocalTree.GetComponent(req.Context.Component)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +135,60 @@ func (s *ReporterServiceServer) GetState(c context.Context, req *api.GetStateReq
 			Timestamp: reporter.TimeToNumber(cursor.ComputedTimestamp()),
 		},
 	}, nil
+}
+
+func buildStateList(tree *reporter.ComponentTree) (*api.StateList, error) {
+	res := &api.StateList{
+		Components: make([]*api.StateListComponent, len(tree.ComponentList.Data.ComponentName)),
+	}
+
+	for i, componentName := range tree.ComponentList.Data.ComponentName {
+		cmp, err := tree.GetComponent(componentName)
+		if err != nil {
+			return nil, err
+		}
+		slc := &api.StateListComponent{Name: componentName, States: make([]*api.StateListState, len(cmp.Data.StateName))}
+		res.Components[i] = slc
+		for is, stateName := range cmp.Data.StateName {
+			state, err := cmp.GetState(stateName)
+			if err != nil {
+				return nil, err
+			}
+			slc.States[is] = &api.StateListState{
+				Name:   stateName,
+				Config: state.Data.StreamConfig,
+			}
+		}
+	}
+	return res, nil
+}
+
+func (s *ReporterServiceServer) ListRemotes(c context.Context, req *api.ListRemotesRequest) (*api.ListRemotesResponse, error) {
+	res := &api.ListRemotesResponse{
+		List: &api.RemoteList{
+			Remotes: make(map[string]*api.StateList),
+		},
+	}
+	for id, remote := range s.Reporter.RemoteList.Remotes {
+		sl, err := buildStateList(remote.ComponentTree)
+		if err != nil {
+			return nil, err
+		}
+		res.List.Remotes[id] = sl
+	}
+	return res, nil
+}
+
+func (s *ReporterServiceServer) CreateRemote(c context.Context, req *api.CreateRemoteRequest) (*api.CreateRemoteResponse, error) {
+	if req.Context == nil || req.Context.RemoteId == "" {
+		return nil, errors.New("Must supply context in request.")
+	}
+
+	_, err := s.Reporter.RemoteList.CreateOrUpdateRemote(req.Context.RemoteId, req.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+	return &api.CreateRemoteResponse{}, nil
 }
 
 func RegisterServer(server *grpc.Server, r *reporter.Reporter) {

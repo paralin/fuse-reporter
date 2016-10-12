@@ -38,27 +38,53 @@ message GetStateResponse {
   StateReport state = 1;
 }
 
+message ListRemotesRequest {
+}
+
+message ListRemotesResponse {
+  api.RemoteList list = 1;
+}
+
+message CreateRemoteRequest {
+  api.RemoteContext context = 1;
+  string endpoint = 2;
+}
+
+message CreateRemoteResponse {
+}
+
 service ReporterService {
   rpc RegisterState(RegisterStateRequest) returns (RegisterStateResponse) {
     option (google.api.http) = {
-      post: "/v1/{context.component}/{context.state_id}/create"
+      post: "/v1/local/{context.component}/{context.state_id}/create"
       body: "stream_config"
     };
   };
   rpc RecordState(RecordStateRequest) returns (RecordStateResponse) {
     option (google.api.http) = {
-      post: "/v1/{context.component}/{context.state_id}/record"
+      post: "/v1/local/{context.component}/{context.state_id}"
       body: "report"
     };
   };
   rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
     option (google.api.http) = {
-      get: "/v1/all/states"
+      get: "/v1/local/all"
     };
   }
   rpc GetState(GetStateRequest) returns (GetStateResponse) {
     option (google.api.http) = {
-      get: "/v1/{context.component}/{context.state_id}"
+      get: "/v1/local/{context.component}/{context.state_id}"
+    };
+  }
+  rpc ListRemotes(ListRemotesRequest) returns (ListRemotesResponse) {
+    option (google.api.http) = {
+      get: "/v1/remote"
+    };
+  }
+  rpc CreateRemote(CreateRemoteRequest) returns (CreateRemoteResponse) {
+    option (google.api.http) = {
+      post: "/v1/remote/{context.remote_id}"
+      body: "endpoint"
     };
   }
 }

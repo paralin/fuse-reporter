@@ -3,6 +3,11 @@ package api;
 
 import "github.com/fuserobotics/statestream/config.proto";
 
+message RemoteContext {
+  string remote_id = 1;
+  StateContext state_context = 2;
+}
+
 message StateContext {
   string component = 1;
   string state_id = 2;
@@ -13,6 +18,10 @@ message StateReport {
   // Support json formatted report
   string json_state = 1;
   int64 timestamp = 2;
+}
+
+message RemoteList {
+  map<string, StateList> remotes = 1;
 }
 
 message StateList {

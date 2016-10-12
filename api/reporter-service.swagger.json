@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/all/states": {
+    "/v1/local/all": {
       "get": {
         "operationId": "ListStates",
         "responses": {
@@ -31,7 +31,7 @@
         ]
       }
     },
-    "/v1/{context.component}/{context.state_id}": {
+    "/v1/local/{context.component}/{context.state_id}": {
       "get": {
         "operationId": "GetState",
         "responses": {
@@ -61,9 +61,47 @@
         "tags": [
           "ReporterService"
         ]
+      },
+      "post": {
+        "operationId": "RecordState",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiRecordStateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRecordStateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
       }
     },
-    "/v1/{context.component}/{context.state_id}/create": {
+    "/v1/local/{context.component}/{context.state_id}/create": {
       "post": {
         "operationId": "RegisterState",
         "responses": {
@@ -103,27 +141,36 @@
         ]
       }
     },
-    "/v1/{context.component}/{context.state_id}/record": {
-      "post": {
-        "operationId": "RecordState",
+    "/v1/remote": {
+      "get": {
+        "operationId": "ListRemotes",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/apiRecordStateResponse"
+              "$ref": "#/definitions/apiListRemotesResponse"
+            }
+          }
+        },
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
+    "/v1/remote/{context.remote_id}": {
+      "post": {
+        "operationId": "CreateRemote",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiCreateRemoteResponse"
             }
           }
         },
         "parameters": [
           {
-            "name": "context.component",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "string"
-          },
-          {
-            "name": "context.state_id",
+            "name": "context.remote_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -134,7 +181,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiRecordStateRequest"
+              "$ref": "#/definitions/apiCreateRemoteRequest"
             }
           }
         ],
@@ -145,6 +192,21 @@
     }
   },
   "definitions": {
+    "apiCreateRemoteRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/apiRemoteContext"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "apiCreateRemoteResponse": {
+      "type": "object"
+    },
     "apiGetStateRequest": {
       "type": "object",
       "properties": {
@@ -161,6 +223,17 @@
       "properties": {
         "state": {
           "$ref": "#/definitions/apiStateReport"
+        }
+      }
+    },
+    "apiListRemotesRequest": {
+      "type": "object"
+    },
+    "apiListRemotesResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/apiRemoteList"
         }
       }
     },
@@ -203,6 +276,29 @@
     },
     "apiRegisterStateResponse": {
       "type": "object"
+    },
+    "apiRemoteContext": {
+      "type": "object",
+      "properties": {
+        "remote_id": {
+          "type": "string",
+          "format": "string"
+        },
+        "state_context": {
+          "$ref": "#/definitions/apiStateContext"
+        }
+      }
+    },
+    "apiRemoteList": {
+      "type": "object",
+      "properties": {
+        "remotes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/apiStateList"
+          }
+        }
+      }
     },
     "apiStateContext": {
       "type": "object",

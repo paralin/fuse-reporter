@@ -10,12 +10,17 @@ import (
 var componentListKey []byte = []byte("components")
 
 type ComponentList struct {
-	Data dbproto.ComponentList
+	BucketName []byte
+	Data       dbproto.ComponentList
+}
+
+func (c *ComponentList) getBucket(tx *bolt.Tx) *bolt.Bucket {
+	return tx.Bucket(c.BucketName)
 }
 
 func (c *ComponentList) WriteToDb(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		bkt := tx.Bucket(globalBucketName)
+		bkt := tx.Bucket(c.BucketName)
 		data, err := proto.Marshal(&c.Data)
 		if err != nil {
 			return err
@@ -35,7 +40,7 @@ func (c *ComponentList) ContainsComponent(name string) bool {
 
 func (c *ComponentList) LoadFromDb(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		bkt := tx.Bucket(globalBucketName)
+		bkt := tx.Bucket(c.BucketName)
 		data := bkt.Get(componentListKey)
 		c.Data.Reset()
 		if data != nil {
