@@ -14,9 +14,65 @@ type Remote struct {
 
 	RemoteList *RemoteList
 
-	Data          dbproto.Remote
-	DetailsKey    []byte
-	ComponentTree *ComponentTree
+	Data               dbproto.Remote
+	DetailsKey         []byte
+	ComponentTree      *ComponentTree
+	LocalComponentTree *ComponentTree
+
+	Manager *RemoteManager
+}
+
+// Load everything, start background manager
+func (rem *Remote) Init() error {
+	if err := rem.LoadFromDb(); err != nil {
+		return err
+	}
+	if err := rem.LoadComponentTree(); err != nil {
+		return err
+	}
+	rem.Manager.Start()
+	return nil
+}
+
+// Shut down the remote manager, etc
+func (rem *Remote) Destroy() {
+	rem.Manager.Destroy()
+}
+
+func (c *Remote) initAllComponents() []error {
+	components := c.ComponentTree.getAllComponents()
+	rerr := []error{}
+	for _, comp := range components {
+		if comp == nil {
+			continue
+		}
+
+		lc, err := c.LocalComponentTree.GetComponent(comp.Name)
+		if err != nil {
+			rerr = append(rerr, err)
+		}
+		if lc == nil {
+			continue
+		}
+
+		states := comp.getAllStates()
+		for _, state := range states {
+			if state == nil {
+				continue
+			}
+
+			ls, err := lc.GetState(state.Name)
+			if err != nil {
+				rerr = append(rerr, err)
+			}
+			if err := state.Backfill(ls); err != nil {
+				rerr = append(rerr, err)
+			}
+			state.RemoteStates = append(state.RemoteStates, state)
+		}
+	}
+
+	return rerr
 }
 
 func (c *Remote) LoadComponentTree() error {
@@ -34,6 +90,9 @@ func (c *Remote) LoadComponentTree() error {
 	c.ComponentTree = NewComponentTree(c.db, bktName)
 	if err := c.ComponentTree.loadComponentList(); err != nil {
 		return err
+	}
+	if err := c.initAllComponents(); len(err) != 0 {
+		return err[0]
 	}
 	return nil
 }

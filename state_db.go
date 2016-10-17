@@ -101,12 +101,24 @@ func (s *State) writeEntryToDb(entry *stream.StreamEntry, isReplacement bool) er
 	})
 }
 
+func (s *State) pushEntryToRemotes(entry *stream.StreamEntry) {
+	for _, rem := range s.RemoteStates {
+		stream := rem.Stream()
+		if stream == nil {
+			continue
+		}
+		stream.WriteEntry(entry)
+	}
+}
+
 // Store a stream entry.
 func (s *State) SaveEntry(entry *stream.StreamEntry) error {
+	s.pushEntryToRemotes(entry)
 	return s.writeEntryToDb(entry, false)
 }
 
 // Amend an old entry
 func (s *State) AmendEntry(entry *stream.StreamEntry, oldTimestamp time.Time) error {
+	s.pushEntryToRemotes(entry)
 	return s.writeEntryToDb(entry, true)
 }

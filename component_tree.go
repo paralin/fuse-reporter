@@ -67,3 +67,12 @@ func (r *ComponentTree) loadComponentList() error {
 	r.ComponentList = &ComponentList{BucketName: r.BucketName}
 	return r.ComponentList.LoadFromDb(r.db)
 }
+
+func (r *ComponentTree) getAllComponents() []*Component {
+	res := make([]*Component, len(r.ComponentList.Data.ComponentName))
+	for i, comp := range r.ComponentList.Data.ComponentName {
+		c, _ := r.GetComponent(comp)
+		res[i] = c
+	}
+	return res
+}

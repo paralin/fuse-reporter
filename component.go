@@ -31,6 +31,15 @@ func (c *Component) getBucket(tx *bolt.Tx) *bolt.Bucket {
 	return pbkt.Bucket(c.BucketName)
 }
 
+func (c *Component) getAllStates() []*State {
+	res := make([]*State, len(c.Data.StateName))
+	for i, sn := range c.Data.StateName {
+		st, _ := c.GetState(sn)
+		res[i] = st
+	}
+	return res
+}
+
 func (c *Component) LoadFromDb(db *bolt.DB) error {
 	return db.View(func(tx *bolt.Tx) error {
 		bkt := c.getBucket(tx)

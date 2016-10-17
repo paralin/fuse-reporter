@@ -70,10 +70,8 @@ func (c *RemoteList) LoadAllRemotes() error {
 			RemoteList: c,
 			DetailsKey: []byte(fmt.Sprintf("r.%s", id)),
 		}
-		if err := rem.LoadFromDb(); err != nil {
-			return err
-		}
-		if err := rem.LoadComponentTree(); err != nil {
+		rem.Manager = &RemoteManager{r: rem}
+		if err := rem.Init(); err != nil {
 			return err
 		}
 		c.Remotes[id] = rem

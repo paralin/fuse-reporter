@@ -19,6 +19,8 @@ type State struct {
 	Name       string
 	BucketName []byte
 	Data       dbproto.State
+
+	RemoteStates []*State
 }
 
 func (s *State) Stream() *stream.Stream {
@@ -53,6 +55,34 @@ func (s *State) LoadFromDb() error {
 		data := bkt.Get(stateDetailsKey)
 		return proto.Unmarshal(data, &s.Data)
 	})
+}
+
+func (s *State) Backfill(other *State) error {
+	// Check if other is empty
+	if len(other.Data.AllTimestamp) == 0 {
+		return nil
+	}
+
+	// get stream
+	str := s.Stream()
+
+	// Check the latest point to backfill
+	lastEntry := s.Data.LatestTimestamp()
+	lastTargetEntry := other.Data.LatestTimestamp()
+
+	for lastEntry < lastTargetEntry {
+		ent, err := other.GetEntryAfter(NumberToTime(lastEntry), stream.StreamEntryAny)
+		if err != nil {
+			return err
+		}
+
+		if err := str.WriteEntry(ent); err != nil {
+			return err
+		}
+
+		lastEntry = TimeToNumber(ent.Timestamp)
+	}
+	return nil
 }
 
 func (s *State) writeToDbWithTransaction(tx *bolt.Tx) error {

@@ -17,7 +17,7 @@ func TestSimple(t *testing.T) {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
-		cmp, err := r.CreateComponentIfNotExists("test")
+		cmp, err := r.LocalTree.CreateComponentIfNotExists("test")
 		if err != nil {
 			t.Fatal(err.Error())
 		}
@@ -29,7 +29,7 @@ func TestSimple(t *testing.T) {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
-		cmpb, err := r.GetComponent("test")
+		cmpb, err := r.LocalTree.GetComponent("test")
 		if err != nil {
 			t.Fatal(err.Error())
 		}
@@ -50,7 +50,7 @@ func TestSimple(t *testing.T) {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
-		cmp, err := r.GetComponent("test")
+		cmp, err := r.LocalTree.GetComponent("test")
 		if err != nil {
 			t.Fatal(err.Error())
 		}
