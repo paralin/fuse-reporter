@@ -73,6 +73,22 @@
     }
   },
   "definitions": {
+    "RemoteStreamConfigStream": {
+      "type": "object",
+      "properties": {
+        "component_id": {
+          "type": "string",
+          "format": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/streamConfig"
+        },
+        "state_id": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
     "remoteGetRemoteConfigRequest": {
       "type": "object",
       "properties": {
@@ -119,6 +135,12 @@
         "crc32": {
           "type": "integer",
           "format": "int32"
+        },
+        "streams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RemoteStreamConfigStream"
+          }
         }
       }
     },
@@ -153,6 +175,29 @@
         "state_id": {
           "type": "string",
           "format": "string"
+        }
+      }
+    },
+    "streamConfig": {
+      "type": "object",
+      "properties": {
+        "record_rate": {
+          "$ref": "#/definitions/streamRateConfig"
+        }
+      }
+    },
+    "streamRateConfig": {
+      "type": "object",
+      "properties": {
+        "change_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
+        },
+        "keyframe_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between keyframes in milliseconds"
         }
       }
     }

@@ -3,7 +3,7 @@ package remote;
 
 import "google/api/annotations.proto";
 // import "github.com/fuserobotics/reporter/api/reporter.proto";
-// import "github.com/fuserobotics/statestream/config.proto";
+import "github.com/fuserobotics/statestream/config.proto";
 
 message RemoteStreamEntry {
   int64 timestamp = 1;
@@ -13,6 +13,13 @@ message RemoteStreamEntry {
 
 message RemoteStreamConfig {
   int32 crc32 = 1;
+  repeated Stream streams = 2;
+
+  message Stream {
+    string component_id = 1;
+    string state_id = 2;
+    stream.Config config = 3;
+  }
 }
 
 message RequestContext {
