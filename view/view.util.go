@@ -15,8 +15,8 @@ func (req *StateQuery) Validate() error {
 	return nil
 }
 
-func (req *GetStateRequest) Validate() error {
-	if err := req.Context.Validate(); err != nil {
+func (req *GetStateRequest) Validate(requireHost bool) error {
+	if err := req.Context.Validate(requireHost); err != nil {
 		return err
 	}
 	if req.Query == nil {
@@ -28,8 +28,8 @@ func (req *GetStateRequest) Validate() error {
 	return nil
 }
 
-func (ctx *StateContext) Validate() error {
-	if ctx.HostIdentifier == "" {
+func (ctx *StateContext) Validate(requireHost bool) error {
+	if requireHost && ctx.HostIdentifier == "" {
 		return errors.New("Host identifier must be specified.")
 	}
 	if ctx.StateId == "" {

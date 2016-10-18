@@ -25,7 +25,7 @@ func (s *ViewServiceServer) ListStates(c context.Context, req *view.ListStatesRe
 }
 
 func (s *ViewServiceServer) GetState(c context.Context, req *view.GetStateRequest) (*view.GetStateResponse, error) {
-	if err := req.Validate(); err != nil {
+	if err := req.Validate(false); err != nil {
 		return nil, err
 	}
 
