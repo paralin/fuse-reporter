@@ -126,11 +126,11 @@ func (s *State) PurgeBefore(idx int) error {
 	}
 	// now, actually delete the data
 	return s.db.Update(func(tx *bolt.Tx) error {
-		bkt := s.getBucket(tx)
+		entryBkt := s.getEntryBucket(tx)
 		// although we will pay attention to the error, don't let it stop us
 		var rerr error
 		for _, ts := range tsToDelete {
-			if err := bkt.Delete([]byte(strconv.FormatInt(ts, 10))); err != nil {
+			if err := entryBkt.Delete([]byte(strconv.FormatInt(ts, 10))); err != nil {
 				rerr = err
 			}
 		}

@@ -16,6 +16,7 @@ message StateList {
 message StateListComponent {
   string name = 1;
   repeated StateListState states = 2;
+  string host_identifier = 3;
 }
 
 message StateListState {

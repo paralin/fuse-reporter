@@ -274,6 +274,10 @@
     "viewStateListComponent": {
       "type": "object",
       "properties": {
+        "host_identifier": {
+          "type": "string",
+          "format": "string"
+        },
         "name": {
           "type": "string",
           "format": "string"
