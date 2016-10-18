@@ -1,0 +1,200 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "github.com/fuserobotics/reporter/view/view-service.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/view/all": {
+      "get": {
+        "operationId": "ListStates",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/viewListStatesResponse"
+            }
+          }
+        },
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
+    "/v1/view/{context.component}/{context.state_id}": {
+      "get": {
+        "operationId": "GetState",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/viewGetStateResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "streamConfig": {
+      "type": "object",
+      "properties": {
+        "record_rate": {
+          "$ref": "#/definitions/streamRateConfig"
+        }
+      }
+    },
+    "streamRateConfig": {
+      "type": "object",
+      "properties": {
+        "change_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
+        },
+        "keyframe_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between keyframes in milliseconds"
+        }
+      }
+    },
+    "viewGetStateRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/viewStateContext"
+        },
+        "query": {
+          "$ref": "#/definitions/viewStateQuery"
+        }
+      }
+    },
+    "viewGetStateResponse": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/viewStateReport"
+        }
+      }
+    },
+    "viewListStatesRequest": {
+      "type": "object"
+    },
+    "viewListStatesResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/viewStateList"
+        }
+      }
+    },
+    "viewStateContext": {
+      "type": "object",
+      "properties": {
+        "component": {
+          "type": "string",
+          "format": "string"
+        },
+        "host_identifier": {
+          "type": "string",
+          "format": "string"
+        },
+        "state_id": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "viewStateList": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/viewStateListComponent"
+          }
+        }
+      }
+    },
+    "viewStateListComponent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "format": "string"
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/viewStateListState"
+          }
+        }
+      }
+    },
+    "viewStateListState": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/streamConfig"
+        },
+        "name": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "viewStateQuery": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "viewStateReport": {
+      "type": "object",
+      "properties": {
+        "json_state": {
+          "type": "string",
+          "format": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "A state report message"
+    }
+  }
+}

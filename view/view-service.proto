@@ -1,0 +1,35 @@
+syntax = "proto3";
+package view;
+
+import "google/api/annotations.proto";
+import "github.com/fuserobotics/reporter/view/view.proto";
+import "github.com/fuserobotics/statestream/config.proto";
+
+message ListStatesRequest {
+}
+
+message ListStatesResponse {
+  StateList list = 1;
+}
+
+message GetStateRequest {
+  view.StateContext context = 1;
+  StateQuery query = 2;
+}
+
+message GetStateResponse {
+  view.StateReport state = 1;
+}
+
+service ReporterService {
+  rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
+    option (google.api.http) = {
+      get: "/v1/view/all"
+    };
+  }
+  rpc GetState(GetStateRequest) returns (GetStateResponse) {
+    option (google.api.http) = {
+      get: "/v1/view/{context.component}/{context.state_id}"
+    };
+  }
+}

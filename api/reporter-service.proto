@@ -2,8 +2,9 @@ syntax = "proto3";
 package api;
 
 import "google/api/annotations.proto";
-import "github.com/fuserobotics/reporter/api/reporter.proto";
 import "github.com/fuserobotics/statestream/config.proto";
+import "github.com/fuserobotics/reporter/api/reporter.proto";
+import "github.com/fuserobotics/reporter/view/view.proto";
 
 // Register or update a state config
 message RegisterStateRequest {
@@ -16,26 +17,10 @@ message RegisterStateResponse {
 
 message RecordStateRequest {
   api.StateContext context = 1;
-  api.StateReport report = 2;
+  view.StateReport report = 2;
 }
 
 message RecordStateResponse {
-}
-
-message ListStatesRequest {
-}
-
-message ListStatesResponse {
-  StateList list = 1;
-}
-
-message GetStateRequest {
-  api.StateContext context = 1;
-  StateQuery query = 2;
-}
-
-message GetStateResponse {
-  StateReport state = 1;
 }
 
 message ListRemotesRequest {
@@ -66,16 +51,6 @@ service ReporterService {
       body: "report"
     };
   };
-  rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
-    option (google.api.http) = {
-      get: "/v1/local/all"
-    };
-  }
-  rpc GetState(GetStateRequest) returns (GetStateResponse) {
-    option (google.api.http) = {
-      get: "/v1/local/{context.component}/{context.state_id}"
-    };
-  }
   rpc ListRemotes(ListRemotesRequest) returns (ListRemotesResponse) {
     option (google.api.http) = {
       get: "/v1/remote"

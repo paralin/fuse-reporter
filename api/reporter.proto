@@ -1,7 +1,7 @@
 syntax = "proto3";
 package api;
 
-import "github.com/fuserobotics/statestream/config.proto";
+import "github.com/fuserobotics/reporter/view/view.proto";
 
 message RemoteContext {
   string remote_id = 1;
@@ -13,31 +13,6 @@ message StateContext {
   string state_id = 2;
 }
 
-// A state report message
-message StateReport {
-  // Support json formatted report
-  string json_state = 1;
-  int64 timestamp = 2;
-}
-
 message RemoteList {
-  map<string, StateList> remotes = 1;
-}
-
-message StateList {
-  repeated StateListComponent components = 1;
-}
-
-message StateListComponent {
-  string name = 1;
-  repeated StateListState states = 2;
-}
-
-message StateListState {
-  string name = 1;
-  stream.Config config = 2;
-}
-
-message StateQuery {
-  int64 time = 1;
+  map<string, view.StateList> remotes = 1;
 }

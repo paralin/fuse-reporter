@@ -15,53 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/local/all": {
-      "get": {
-        "operationId": "ListStates",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiListStatesResponse"
-            }
-          }
-        },
-        "tags": [
-          "ReporterService"
-        ]
-      }
-    },
     "/v1/local/{context.component}/{context.state_id}": {
-      "get": {
-        "operationId": "GetState",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiGetStateResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "context.component",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "string"
-          },
-          {
-            "name": "context.state_id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "string"
-          }
-        ],
-        "tags": [
-          "ReporterService"
-        ]
-      },
       "post": {
         "operationId": "RecordState",
         "responses": {
@@ -207,25 +161,6 @@
     "apiCreateRemoteResponse": {
       "type": "object"
     },
-    "apiGetStateRequest": {
-      "type": "object",
-      "properties": {
-        "context": {
-          "$ref": "#/definitions/apiStateContext"
-        },
-        "query": {
-          "$ref": "#/definitions/apiStateQuery"
-        }
-      }
-    },
-    "apiGetStateResponse": {
-      "type": "object",
-      "properties": {
-        "state": {
-          "$ref": "#/definitions/apiStateReport"
-        }
-      }
-    },
     "apiListRemotesRequest": {
       "type": "object"
     },
@@ -237,17 +172,6 @@
         }
       }
     },
-    "apiListStatesRequest": {
-      "type": "object"
-    },
-    "apiListStatesResponse": {
-      "type": "object",
-      "properties": {
-        "list": {
-          "$ref": "#/definitions/apiStateList"
-        }
-      }
-    },
     "apiRecordStateRequest": {
       "type": "object",
       "properties": {
@@ -255,7 +179,7 @@
           "$ref": "#/definitions/apiStateContext"
         },
         "report": {
-          "$ref": "#/definitions/apiStateReport"
+          "$ref": "#/definitions/viewStateReport"
         }
       }
     },
@@ -295,7 +219,7 @@
         "remotes": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/apiStateList"
+            "$ref": "#/definitions/viewStateList"
           }
         }
       }
@@ -312,68 +236,6 @@
           "format": "string"
         }
       }
-    },
-    "apiStateList": {
-      "type": "object",
-      "properties": {
-        "components": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiStateListComponent"
-          }
-        }
-      }
-    },
-    "apiStateListComponent": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "format": "string"
-        },
-        "states": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiStateListState"
-          }
-        }
-      }
-    },
-    "apiStateListState": {
-      "type": "object",
-      "properties": {
-        "config": {
-          "$ref": "#/definitions/streamConfig"
-        },
-        "name": {
-          "type": "string",
-          "format": "string"
-        }
-      }
-    },
-    "apiStateQuery": {
-      "type": "object",
-      "properties": {
-        "time": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "apiStateReport": {
-      "type": "object",
-      "properties": {
-        "json_state": {
-          "type": "string",
-          "format": "string",
-          "title": "Support json formatted report"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "int64"
-        }
-      },
-      "title": "A state report message"
     },
     "streamConfig": {
       "type": "object",
@@ -397,6 +259,58 @@
           "title": "Minimum time between keyframes in milliseconds"
         }
       }
+    },
+    "viewStateList": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/viewStateListComponent"
+          }
+        }
+      }
+    },
+    "viewStateListComponent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "format": "string"
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/viewStateListState"
+          }
+        }
+      }
+    },
+    "viewStateListState": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "#/definitions/streamConfig"
+        },
+        "name": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "viewStateReport": {
+      "type": "object",
+      "properties": {
+        "json_state": {
+          "type": "string",
+          "format": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "A state report message"
     }
   }
 }
