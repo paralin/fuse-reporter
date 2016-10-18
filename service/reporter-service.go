@@ -10,6 +10,7 @@ import (
 
 	"github.com/fuserobotics/reporter"
 	"github.com/fuserobotics/reporter/api"
+	"github.com/fuserobotics/reporter/util"
 	statestream "github.com/fuserobotics/statestream"
 )
 
@@ -33,7 +34,7 @@ func (s *ReporterServiceServer) RecordState(c context.Context, req *api.RecordSt
 
 	var reportTime time.Time
 	if req.Report.Timestamp > 0 {
-		reportTime = reporter.NumberToTime(req.Report.Timestamp)
+		reportTime = util.NumberToTime(req.Report.Timestamp)
 	} else {
 		reportTime = time.Now()
 	}
@@ -109,7 +110,7 @@ func (s *ReporterServiceServer) GetState(c context.Context, req *api.GetStateReq
 		cursor = writeCursor
 	} else {
 		cursor = stream.BuildCursor(statestream.ReadForwardCursor)
-		if err := cursor.Init(reporter.NumberToTime(req.Query.Time)); err != nil {
+		if err := cursor.Init(util.NumberToTime(req.Query.Time)); err != nil {
 			return nil, err
 		}
 	}
@@ -128,7 +129,7 @@ func (s *ReporterServiceServer) GetState(c context.Context, req *api.GetStateReq
 	return &api.GetStateResponse{
 		State: &api.StateReport{
 			JsonState: string(respData),
-			Timestamp: reporter.TimeToNumber(cursor.ComputedTimestamp()),
+			Timestamp: util.TimeToNumber(cursor.ComputedTimestamp()),
 		},
 	}, nil
 }
