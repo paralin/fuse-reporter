@@ -8,6 +8,7 @@ import (
 
 	"encoding/json"
 	"github.com/boltdb/bolt"
+	"github.com/fuserobotics/reporter/util"
 	"github.com/fuserobotics/statestream"
 )
 
@@ -20,7 +21,7 @@ func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, err
 		return nil, nil
 	}
 	idx := sort.Search(snapshotCount, func(i int) bool {
-		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < TimeToNumber(timestamp)
+		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < util.TimeToNumber(timestamp)
 	})
 	if idx < 0 || idx >= snapshotCount {
 		return nil, nil
@@ -47,7 +48,7 @@ func (s *State) getEntry(timestamp int64) (*stream.StreamEntry, error) {
 	entry := &stream.StreamEntry{
 		Type:      entryType,
 		Data:      streamEntryData,
-		Timestamp: NumberToTime(timestamp),
+		Timestamp: util.NumberToTime(timestamp),
 	}
 	return entry, err
 }
@@ -64,7 +65,7 @@ func (s *State) GetEntryAfter(timestamp time.Time, filterType stream.StreamEntry
 	if entryCount == 0 {
 		return nil, nil
 	}
-	timeNum := TimeToNumber(timestamp)
+	timeNum := util.TimeToNumber(timestamp)
 	idx := sort.Search(entryCount, func(i int) bool {
 		return tsArr[i] > timeNum
 	})
@@ -84,7 +85,7 @@ func (s *State) writeEntryToDb(entry *stream.StreamEntry, isReplacement bool) er
 	}
 	return s.db.Update(func(tx *bolt.Tx) error {
 		bkt := s.getEntryBucket(tx)
-		timeNum := TimeToNumber(entry.Timestamp)
+		timeNum := util.TimeToNumber(entry.Timestamp)
 		if !isReplacement {
 			s.Data.AllTimestamp = append(s.Data.AllTimestamp, timeNum)
 			if entry.Type == stream.StreamEntrySnapshot {
@@ -92,7 +93,7 @@ func (s *State) writeEntryToDb(entry *stream.StreamEntry, isReplacement bool) er
 			}
 			s.Data.LastTimestamp = timeNum
 		}
-		if err := bkt.Put([]byte(strconv.FormatInt(TimeToNumber(entry.Timestamp), 10)), data); err != nil {
+		if err := bkt.Put([]byte(strconv.FormatInt(util.TimeToNumber(entry.Timestamp), 10)), data); err != nil {
 			return err
 		}
 		if isReplacement {

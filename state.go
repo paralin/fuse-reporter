@@ -6,6 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/fuserobotics/reporter/dbproto"
+	"github.com/fuserobotics/reporter/util"
 	"github.com/fuserobotics/statestream"
 	"github.com/golang/protobuf/proto"
 )
@@ -75,7 +76,7 @@ func (s *State) Backfill(other *State) error {
 	lastTargetEntry := other.Data.LatestTimestamp()
 
 	for lastEntry < lastTargetEntry {
-		ent, err := other.GetEntryAfter(NumberToTime(lastEntry), stream.StreamEntryAny)
+		ent, err := other.GetEntryAfter(util.NumberToTime(lastEntry), stream.StreamEntryAny)
 		if err != nil {
 			return err
 		}
@@ -84,7 +85,7 @@ func (s *State) Backfill(other *State) error {
 			return err
 		}
 
-		lastEntry = TimeToNumber(ent.Timestamp)
+		lastEntry = util.TimeToNumber(ent.Timestamp)
 	}
 	return nil
 }
