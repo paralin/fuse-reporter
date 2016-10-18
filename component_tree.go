@@ -34,13 +34,13 @@ func (r *ComponentTree) GetComponent(componentName string) (*Component, error) {
 
 	// Attempt to load it from DB
 	component, err := LoadComponent(r.db, r.ComponentList, componentName)
-	component.dirtyChan = r.dirtyChan
 	if err != nil {
 		return nil, err
 	}
 	if component == nil {
 		return nil, ComponentNotExistError
 	}
+	component.dirtyChan = r.dirtyChan
 	r.Components[componentName] = component
 	return component, nil
 }
@@ -51,11 +51,11 @@ func (r *ComponentTree) CreateComponentIfNotExists(componentName string) (*Compo
 	}
 
 	component, err := CreateComponent(r.db, r.ComponentList, componentName)
-	component.dirtyChan = r.dirtyChan
 	if err != nil {
 		return nil, err
 	}
 	r.Components[componentName] = component
+	component.dirtyChan = r.dirtyChan
 	return component, nil
 }
 

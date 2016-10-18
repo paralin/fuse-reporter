@@ -105,6 +105,20 @@ func (s *State) WriteState(timestamp time.Time, state stream.StateData) error {
 
 func (s *State) PurgeBefore(idx int) error {
 	// first, commit the removal from the timestamps
+	if idx < len(s.Data.AllTimestamp) {
+		deletingBefore := s.Data.AllTimestamp[idx]
+		// delete up to and including deletingIndex
+		deletingIndex := -1
+		for i, ts := range s.Data.SnapshotTimestamp {
+			if ts >= deletingBefore {
+				break
+			}
+			deletingIndex = i
+		}
+		if deletingIndex != -1 {
+			s.Data.SnapshotTimestamp = s.Data.SnapshotTimestamp[:deletingIndex+1]
+		}
+	}
 	tsToDelete := s.Data.AllTimestamp[:idx]
 	s.Data.AllTimestamp = s.Data.AllTimestamp[idx:]
 	if err := s.WriteToDb(); err != nil {

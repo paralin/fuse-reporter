@@ -21,7 +21,7 @@ type RemoteManager struct {
 	client remote.ReporterRemoteServiceClient
 
 	stopChan    chan bool
-	pendingPush []*State
+	pendingPush map[*State]int
 }
 
 func (m *RemoteManager) Start() {
@@ -68,29 +68,34 @@ func (m *RemoteManager) queryConfig() error {
 	return m.r.WriteToDb()
 }
 
-func (m *RemoteManager) flushDirtyChan() []*State {
-	res := []*State{}
+func (m *RemoteManager) flushDirtyChan(commit bool) {
 	for {
 		select {
 		case st := <-m.r.StateDirtyChan:
-			res = append(res, st)
+			if commit {
+				if _, ok := m.pendingPush[st]; ok {
+					m.pendingPush[st]++
+				} else {
+					m.pendingPush[st] = 1
+				}
+			}
 		default:
-			return res
+			return
 		}
 	}
 }
 
 func (m *RemoteManager) buildPushSlice() {
-	res := []*State{}
+	res := map[*State]int{}
 	for _, cmp := range m.r.ComponentTree.getAllComponents() {
 		for _, st := range cmp.getAllStates() {
 			if st.Data.LastTimestamp != 0 && st.Data.RemoteTimestamp < st.Data.LastTimestamp {
-				res = append(res, st)
+				res[st] = 1
 			}
 		}
 	}
 	m.pendingPush = res
-	m.flushDirtyChan()
+	m.flushDirtyChan(false)
 }
 
 // Synchronize config with local component tree
@@ -198,6 +203,9 @@ func (m *RemoteManager) pushStateToRemote(st *State) error {
 	// find next index to send
 	for st.Data.AllTimestamp[sendIdx] <= st.Data.RemoteTimestamp {
 		sendIdx++
+		if sendIdx == len(st.Data.AllTimestamp) {
+			return nil
+		}
 	}
 
 	// Until RemoteTimestamp >= LastTimestamp
@@ -230,6 +238,14 @@ func (m *RemoteManager) pushStateToRemote(st *State) error {
 		})
 
 		if err != nil {
+			// we had some kind of push error
+			glog.Warningf("Error pushing entry to remote, reconnecting: %v\n", err)
+
+			// disconnect
+			m.conn.Close()
+			m.client = nil
+			m.conn = nil
+
 			return err
 		}
 
@@ -242,28 +258,36 @@ func (m *RemoteManager) pushStateToRemote(st *State) error {
 		st.Data.RemoteTimestamp = nextSend
 		st.WriteToDb() //  any errors here should be picked up later
 
-		sendIdx++
-
 		// Always keep at least 1 snapshot + everything past it
 		// Once we pass a snapshot, delete everything before it
-		if nextEntry.Type == stream.StreamEntrySnapshot {
-			st.PurgeBefore(sendIdx) // ignore error here, shouldn't affect this process.
+		if nextEntry.Type == stream.StreamEntrySnapshot && sendIdx != 0 {
+			if err := st.PurgeBefore(sendIdx); err != nil {
+				// ignore error here, shouldn't affect this process.
+				glog.Warningf("Error purging remote entries, %v", err)
+			}
+			// index 0 will now be sendIdx
+			sendIdx = 0
 		}
+
+		sendIdx++
+
 	}
 	return nil
 }
 
 // Push all stream entries to remote
 func (m *RemoteManager) pushToRemote() {
-	for _, state := range m.pendingPush {
+	for state := range m.pendingPush {
 		if err := m.pushStateToRemote(state); err != nil {
 			return
 		}
+		delete(m.pendingPush, state)
 	}
-	m.pendingPush = m.flushDirtyChan()
+	m.flushDirtyChan(true)
 }
 
 func (m *RemoteManager) update() bool {
+	m.flushDirtyChan(true)
 	if m.client == nil {
 		glog.Infof("Attempting to connect to %s...", m.r.Data.Config.Endpoint)
 		if err := m.connect(); err != nil {
@@ -274,6 +298,8 @@ func (m *RemoteManager) update() bool {
 		// force a config re-fetch
 		m.r.Data.StreamConfig = nil
 	}
+	// Do this frequently to avoid a block
+	m.flushDirtyChan(true)
 	if m.r.Data.StreamConfig == nil {
 		glog.Infof("Querying %s for config...", m.r.Data.Config.Endpoint)
 		if err := m.queryConfig(); err != nil {
@@ -307,7 +333,12 @@ func (m *RemoteManager) update() bool {
 	case <-m.stopChan:
 		return false
 	case state := <-m.r.StateDirtyChan:
-		m.pendingPush = append(m.flushDirtyChan(), state)
+		if _, ok := m.pendingPush[state]; ok {
+			m.pendingPush[state]++
+		} else {
+			m.pendingPush[state] = 1
+		}
+		m.flushDirtyChan(true)
 	case <-minTick.C:
 	}
 
