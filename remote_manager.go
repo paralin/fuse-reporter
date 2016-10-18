@@ -216,10 +216,10 @@ func (m *RemoteManager) pushStateToRemote(st *State) error {
 
 		// Send the entry
 		resp, err := m.client.PushStreamEntry(context.Background(), &remote.PushStreamEntryRequest{
-			// We can not specify host identifier, since this is already known to the remote.
 			Context: &remote.RequestContext{
-				ComponentId: st.Component.Name,
-				StateId:     st.Name,
+				HostIdentifier: m.r.RemoteList.reporter.hostIdentifier,
+				ComponentId:    st.Component.Name,
+				StateId:        st.Name,
 			},
 			Entry: &remote.RemoteStreamEntry{
 				Timestamp: nextSend,
