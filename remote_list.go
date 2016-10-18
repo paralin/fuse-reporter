@@ -11,7 +11,9 @@ import (
 var remoteListKey []byte = []byte("remotes")
 
 type RemoteList struct {
-	db         *bolt.DB
+	db       *bolt.DB
+	reporter *Reporter
+
 	BucketName []byte
 	Data       dbproto.RemoteList
 
@@ -85,7 +87,12 @@ func (r *RemoteList) CreateOrUpdateRemote(remoteId, endpoint string) (*Remote, e
 		if exist.Data.Config.Endpoint == endpoint {
 			return exist, nil
 		}
+
+		// Kill existing connections
+		exist.Destroy()
+		exist = nil
 	}
+
 	nrem := &Remote{
 		db:         r.db,
 		RemoteList: r,
@@ -97,18 +104,24 @@ func (r *RemoteList) CreateOrUpdateRemote(remoteId, endpoint string) (*Remote, e
 			},
 		},
 	}
+	nrem.Manager = &RemoteManager{r: nrem}
 	if err := nrem.WriteToDb(); err != nil {
 		return nil, err
 	}
 	r.Remotes[remoteId] = nrem
-	r.Data.RemoteId = append(r.Data.RemoteId, remoteId)
-	if err := r.WriteToDb(); err != nil {
-		return nil, err
+	if !ok {
+		r.Data.RemoteId = append(r.Data.RemoteId, remoteId)
+		if err := r.WriteToDb(); err != nil {
+			return nil, err
+		}
 	}
 	if err := nrem.LoadComponentTree(); err != nil {
 		return nil, err
 	}
 	if err := nrem.ComponentTree.ComponentList.WriteToDb(r.db); err != nil {
+		return nil, err
+	}
+	if err := nrem.Init(); err != nil {
 		return nil, err
 	}
 	return nrem, nil

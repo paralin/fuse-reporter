@@ -11,8 +11,9 @@ var localBucketName []byte = []byte("local")
 
 // A reporter instance
 type Reporter struct {
-	dbPath string
-	db     *bolt.DB
+	dbPath         string
+	db             *bolt.DB
+	hostIdentifier string
 
 	LocalTree  *ComponentTree
 	RemoteList *RemoteList
@@ -29,8 +30,8 @@ func (r *Reporter) openDb() error {
 	return nil
 }
 
-func NewReporter(dbPath string) (*Reporter, error) {
-	res := &Reporter{dbPath: dbPath}
+func NewReporter(hostIdentifier, dbPath string) (*Reporter, error) {
+	res := &Reporter{dbPath: dbPath, hostIdentifier: hostIdentifier}
 	if err := res.openDb(); err != nil {
 		return nil, err
 	}
@@ -40,6 +41,7 @@ func NewReporter(dbPath string) (*Reporter, error) {
 	}
 	res.RemoteList = &RemoteList{
 		db:         res.db,
+		reporter:   res,
 		BucketName: []byte("remote"),
 		Remotes:    make(map[string]*Remote),
 	}

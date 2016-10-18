@@ -2,6 +2,7 @@ syntax = "proto3";
 package dbproto;
 
 import "github.com/fuserobotics/statestream/config.proto";
+import "github.com/fuserobotics/reporter/remote/remote-service.proto";
 
 message ComponentList {
   repeated string component_name = 1;
@@ -25,6 +26,7 @@ message Remote {
   string id = 1;
   RemoteConfig config = 2;
   repeated RemoteState state = 3;
+  remote.RemoteStreamConfig stream_config = 4;
 }
 
 message RemoteConfig {
