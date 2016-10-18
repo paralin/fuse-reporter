@@ -1,7 +1,6 @@
 package reporter
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -86,10 +85,7 @@ func (s *State) SubscribeToOther(other *State) error {
 				if !ok {
 					return
 				}
-				fmt.Printf("Writing locally from other stream: %v\n", entry)
-				if err := s.WriteEntry(entry); err != nil {
-					fmt.Printf("Error writing: %v\n", err)
-				}
+				s.WriteEntry(entry)
 			}
 		}
 	}()
