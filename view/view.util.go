@@ -40,3 +40,16 @@ func (ctx *StateContext) Validate(requireHost bool) error {
 	}
 	return nil
 }
+
+func (r *StateHistoryQuery) Validate() error {
+	if r == nil {
+		return errors.New("Query is required.")
+	}
+	if r.EndTime != 0 && r.Tail {
+		return errors.New("Cannot tail unless EndTime = 0 (indicating latest).")
+	}
+	if r.BeginTime > r.EndTime {
+		return errors.New("BeginTime cannot be greater than EndTime.")
+	}
+	return nil
+}

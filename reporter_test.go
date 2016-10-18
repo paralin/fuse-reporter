@@ -13,7 +13,7 @@ func TestSimple(t *testing.T) {
 	}
 	t.Logf("Using temporary db: %s", tempPath)
 	{
-		r, err := NewReporter(tempPath)
+		r, err := NewReporter("test", tempPath)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
@@ -46,7 +46,7 @@ func TestSimple(t *testing.T) {
 		r.Close()
 	}
 	{
-		r, err := NewReporter(tempPath)
+		r, err := NewReporter("test", tempPath)
 		if err != nil {
 			t.Fatal(err.Error())
 		}

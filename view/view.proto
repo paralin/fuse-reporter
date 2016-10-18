@@ -24,12 +24,30 @@ message StateListState {
   stream.Config config = 2;
 }
 
+// Query a specific time.
 message StateQuery {
   int64 time = 1;
+}
+
+// Query a range of time.
+message StateHistoryQuery {
+  // Begin time, or the entire history if zero.
+  int64 begin_time = 1;
+  // End time, or latest if zero.
+  int64 end_time = 2;
+  // If end_time == 0 and tail == true then tail entries.
+  bool tail = 3;
 }
 
 // A state report message
 message StateReport {
   string json_state = 1;
   int64 timestamp = 2;
+}
+
+// A state entry message
+message StateEntry {
+  string json_state = 1;
+  int64 timestamp = 2;
+  int32 type = 3;
 }

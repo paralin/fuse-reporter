@@ -21,6 +21,27 @@ message GetStateResponse {
   view.StateReport state = 1;
 }
 
+message StateHistoryRequest {
+  view.StateContext context = 1;
+  StateHistoryQuery query = 2;
+}
+
+// Response in stream of state history.
+// Messages will look like:
+//  - status: 0, state: {state} (etc)
+//  ! (stream closed here if not tailing)
+//  - status: 1, state: nil (indicating end of initial set)
+//  - status: 1, state: {latest tailed state}
+message StateHistoryResponse {
+  view.StateEntry state = 1;
+  StateHistoryStatus status = 2;
+
+  enum StateHistoryStatus {
+    HISTORY_INITIAL_SET = 0;
+    HISTORY_TAIL = 1;
+  }
+}
+
 service ReporterService {
   rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
     option (google.api.http) = {
@@ -32,4 +53,9 @@ service ReporterService {
       get: "/v1/view/{context.component}/{context.state_id}"
     };
   }
+  rpc GetStateHistory(StateHistoryRequest) returns (stream StateHistoryResponse) {
+    option (google.api.http) = {
+      get: "/v1/view/{context.component}/{context.state_id}/history"
+    };
+  };
 }

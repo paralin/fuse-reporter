@@ -68,6 +68,7 @@ func (r *ComponentTree) DeleteComponent(id string) error {
 		return err
 	}
 	delete(r.Components, id)
+	cmp.ReleaseAllStates()
 	return cmp.PurgeFromDb()
 }
 

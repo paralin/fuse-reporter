@@ -62,9 +62,49 @@
           "ReporterService"
         ]
       }
+    },
+    "/v1/view/{context.component}/{context.state_id}/history": {
+      "get": {
+        "operationId": "GetStateHistory",
+        "responses": {
+          "200": {
+            "description": "(streaming responses)",
+            "schema": {
+              "$ref": "#/definitions/viewStateHistoryResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
     }
   },
   "definitions": {
+    "StateHistoryResponseStateHistoryStatus": {
+      "type": "string",
+      "enum": [
+        "HISTORY_INITIAL_SET",
+        "HISTORY_TAIL"
+      ],
+      "default": "HISTORY_INITIAL_SET"
+    },
     "streamConfig": {
       "type": "object",
       "properties": {
@@ -135,6 +175,68 @@
         }
       }
     },
+    "viewStateEntry": {
+      "type": "object",
+      "properties": {
+        "json_state": {
+          "type": "string",
+          "format": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "A state entry message"
+    },
+    "viewStateHistoryQuery": {
+      "type": "object",
+      "properties": {
+        "begin_time": {
+          "type": "string",
+          "format": "int64",
+          "description": "Begin time, or the entire history if zero."
+        },
+        "end_time": {
+          "type": "string",
+          "format": "int64",
+          "description": "End time, or latest if zero."
+        },
+        "tail": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "If end_time == 0 and tail == true then tail entries."
+        }
+      },
+      "description": "Query a range of time."
+    },
+    "viewStateHistoryRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/viewStateContext"
+        },
+        "query": {
+          "$ref": "#/definitions/viewStateHistoryQuery"
+        }
+      }
+    },
+    "viewStateHistoryResponse": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/viewStateEntry"
+        },
+        "status": {
+          "$ref": "#/definitions/StateHistoryResponseStateHistoryStatus"
+        }
+      },
+      "title": "Response in stream of state history.\nMessages will look like:\n - status: 0, state: {state} (etc)\n ! (stream closed here if not tailing)\n - status: 1, state: nil (indicating end of initial set)\n - status: 1, state: {latest tailed state}"
+    },
     "viewStateList": {
       "type": "object",
       "properties": {
@@ -184,7 +286,8 @@
           "type": "string",
           "format": "int64"
         }
-      }
+      },
+      "description": "Query a specific time."
     },
     "viewStateReport": {
       "type": "object",

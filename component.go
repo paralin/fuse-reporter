@@ -64,12 +64,11 @@ func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Conf
 		return state, nil
 	}
 	state = &State{
-		db:           c.db,
-		Component:    c,
-		Name:         stateName,
-		BucketName:   []byte(fmt.Sprintf("st.%s", stateName)),
-		RemoteStates: make(map[string]*State),
-		dirtyChan:    c.dirtyChan,
+		db:         c.db,
+		Component:  c,
+		Name:       stateName,
+		BucketName: []byte(fmt.Sprintf("st.%s", stateName)),
+		dirtyChan:  c.dirtyChan,
 	}
 	state.Data.StreamConfig = config
 	c.db.Update(func(tx *bolt.Tx) error {
@@ -83,12 +82,20 @@ func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Conf
 	return state, state.WriteToDb()
 }
 
+func (c *Component) ReleaseAllStates() {
+	for id, state := range c.States {
+		delete(c.States, id)
+		state.Dispose()
+	}
+}
+
 func (c *Component) DeleteState(stateName string) error {
 	state, err := c.GetState(stateName)
 	if err == ComponentNotExistError {
 		return nil
 	}
 	delete(c.States, stateName)
+	state.Dispose()
 	// delete from name list
 	for idx, nm := range c.Data.StateName {
 		if nm == stateName {
@@ -98,10 +105,6 @@ func (c *Component) DeleteState(stateName string) error {
 			}
 		}
 	}
-	// double-check this is deleted
-	defer func() {
-		delete(c.States, stateName)
-	}()
 	// purge from db
 	return state.PurgeFromDb()
 }
@@ -118,12 +121,11 @@ func (c *Component) GetState(stateName string) (*State, error) {
 
 	// Attempt to load it from DB
 	state = &State{
-		Component:    c,
-		Name:         stateName,
-		BucketName:   []byte(fmt.Sprintf("st.%s", stateName)),
-		db:           c.db,
-		RemoteStates: make(map[string]*State),
-		dirtyChan:    c.dirtyChan,
+		Component:  c,
+		Name:       stateName,
+		BucketName: []byte(fmt.Sprintf("st.%s", stateName)),
+		db:         c.db,
+		dirtyChan:  c.dirtyChan,
 	}
 	if err := state.LoadFromDb(); err != nil {
 		return nil, err

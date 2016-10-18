@@ -68,7 +68,9 @@ func (c *Remote) initAllComponents() []error {
 			if err := state.Backfill(ls); err != nil {
 				rerr = append(rerr, err)
 			}
-			ls.RemoteStates[c.Data.Id] = state
+			if err := state.SubscribeToOther(ls); err != nil {
+				rerr = append(rerr, err)
+			}
 		}
 	}
 

@@ -1,6 +1,7 @@
 package reporter
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -19,13 +20,13 @@ type State struct {
 	db                *bolt.DB
 	stream            *stream.Stream
 	dirtyChan         chan *State
+	otherChan         chan *stream.StreamEntry
 
 	Component  *Component
 	Name       string
 	BucketName []byte
 	Data       dbproto.State
-
-	RemoteStates map[string]*State
+	OtherSub   stream.CursorEntrySubscription
 }
 
 func (s *State) Stream() *stream.Stream {
@@ -62,6 +63,39 @@ func (s *State) LoadFromDb() error {
 	})
 }
 
+// Slave this state to follow changes of another.
+func (s *State) SubscribeToOther(other *State) error {
+	cursor, err := other.Stream().WriteCursor()
+	if err != nil {
+		return err
+	}
+
+	if s.OtherSub != nil {
+		s.OtherSub.Unsubscribe()
+		close(s.otherChan)
+		s.OtherSub = nil
+	}
+
+	// bufer this one to avoid write delays
+	s.otherChan = make(chan *stream.StreamEntry, 50)
+	s.OtherSub = cursor.SubscribeEntries(s.otherChan)
+	go func() {
+		for {
+			select {
+			case entry, ok := <-s.otherChan:
+				if !ok {
+					return
+				}
+				fmt.Printf("Writing locally from other stream: %v\n", entry)
+				if err := s.WriteEntry(entry); err != nil {
+					fmt.Printf("Error writing: %v\n", err)
+				}
+			}
+		}
+	}()
+	return nil
+}
+
 func (s *State) Backfill(other *State) error {
 	// Check if other is empty
 	if len(other.Data.AllTimestamp) == 0 {
@@ -94,8 +128,15 @@ func (s *State) WriteState(timestamp time.Time, state stream.StateData) error {
 	if err := s.Stream().WriteState(timestamp, state); err != nil {
 		return err
 	}
-	for _, rem := range s.RemoteStates {
-		rem.WriteState(timestamp, state)
+	if s.dirtyChan != nil {
+		s.dirtyChan <- s
+	}
+	return nil
+}
+
+func (s *State) WriteEntry(entry *stream.StreamEntry) error {
+	if err := s.Stream().WriteEntry(entry); err != nil {
+		return err
 	}
 	if s.dirtyChan != nil {
 		s.dirtyChan <- s
@@ -166,4 +207,12 @@ func (s *State) PurgeFromDb() error {
 		cbkt := s.Component.getBucket(tx)
 		return cbkt.DeleteBucket(s.BucketName)
 	})
+}
+
+func (s *State) Dispose() {
+	if s.OtherSub != nil {
+		s.OtherSub.Unsubscribe()
+		close(s.otherChan)
+		s.OtherSub = nil
+	}
 }

@@ -126,6 +126,11 @@ func (m *RemoteManager) syncRemoteConfig() error {
 		if err != nil {
 			return err
 		}
+		if st.Data.StreamConfig == nil || st.Data.StreamConfig.RecordRate == nil {
+			st.Data.StreamConfig = stream.DefaultStreamConfig()
+		}
+		// see https://github.com/FuseRobotics/Reporter/issues/1
+		st.Data.StreamConfig.RecordRate.ChangeFrequency = 0
 
 		// local component + state
 		lcmp, err := lct.CreateComponentIfNotExists(comp.ComponentId)
@@ -141,7 +146,9 @@ func (m *RemoteManager) syncRemoteConfig() error {
 		if err := st.Backfill(lst); err != nil {
 			return err
 		}
-		lst.RemoteStates[m.r.Data.Id] = st
+		if err := st.SubscribeToOther(lst); err != nil {
+			return err
+		}
 	}
 
 	// check which components we need to remove
@@ -153,7 +160,6 @@ func (m *RemoteManager) syncRemoteConfig() error {
 				if _, ok := stateIds[state.Name]; ok {
 					continue
 				}
-				m.unregisterRemote(cmp.Name, state.Name)
 				if err := cmp.DeleteState(state.Name); err != nil {
 					return err
 				}
@@ -161,29 +167,12 @@ func (m *RemoteManager) syncRemoteConfig() error {
 			continue
 		}
 		// Delete the entire component
-		for _, state := range cmp.States {
-			m.unregisterRemote(cmp.Name, state.Name)
-		}
 		if err := ct.DeleteComponent(cmp.Name); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (m *RemoteManager) unregisterRemote(component, state string) {
-	// local component + state
-	lct := m.r.RemoteList.reporter.LocalTree
-	lcmp, err := lct.GetComponent(component)
-	if err != nil || lcmp == nil {
-		return
-	}
-	lst, err := lcmp.GetState(state)
-	if err != nil || lst == nil {
-		return
-	}
-	delete(lst.RemoteStates, m.r.Data.Id)
 }
 
 // Push all states to remote, return nil if successful.

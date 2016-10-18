@@ -1,7 +1,7 @@
 package reporter
 
 import (
-	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -17,13 +17,17 @@ var entryTypeKey string = "$t"
 // Retrieve the first snapshot before timestamp. Return nil for no data.
 func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, error) {
 	snapshotCount := len(s.Data.SnapshotTimestamp)
+	timeNum := util.TimeToNumber(timestamp)
 	if snapshotCount == 0 {
 		return nil, nil
 	}
 	idx := sort.Search(snapshotCount, func(i int) bool {
-		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < util.TimeToNumber(timestamp)
+		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < timeNum
 	})
 	if idx < 0 || idx >= snapshotCount {
+		return nil, nil
+	}
+	if s.Data.SnapshotTimestamp[idx] >= timeNum {
 		return nil, nil
 	}
 	return s.getEntry(s.Data.SnapshotTimestamp[idx])
@@ -35,7 +39,7 @@ func (s *State) getEntry(timestamp int64) (*stream.StreamEntry, error) {
 		bkt := s.getEntryBucket(tx)
 		data := bkt.Get([]byte(strconv.FormatInt(timestamp, 10)))
 		if len(data) == 0 {
-			return errors.New("Data for timestamp not found.")
+			return fmt.Errorf("Data for timestamp %d not found.", timestamp)
 		}
 		return json.Unmarshal(data, &streamEntry)
 	})
