@@ -1,6 +1,9 @@
 package reporter
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/boltdb/bolt"
 	"github.com/fuserobotics/reporter/dbproto"
 	"github.com/fuserobotics/statestream"
@@ -14,13 +17,14 @@ type State struct {
 	hasEnsuredBuckets bool
 	db                *bolt.DB
 	stream            *stream.Stream
+	dirtyChan         chan *State
 
 	Component  *Component
 	Name       string
 	BucketName []byte
 	Data       dbproto.State
 
-	RemoteStates []*State
+	RemoteStates map[string]*State
 }
 
 func (s *State) Stream() *stream.Stream {
@@ -85,6 +89,40 @@ func (s *State) Backfill(other *State) error {
 	return nil
 }
 
+func (s *State) WriteState(timestamp time.Time, state stream.StateData) error {
+	if err := s.Stream().WriteState(timestamp, state); err != nil {
+		return err
+	}
+	for _, rem := range s.RemoteStates {
+		rem.WriteState(timestamp, state)
+	}
+	if s.dirtyChan != nil {
+		s.dirtyChan <- s
+	}
+	return nil
+}
+
+func (s *State) PurgeBefore(idx int) error {
+	// first, commit the removal from the timestamps
+	tsToDelete := s.Data.AllTimestamp[:idx]
+	s.Data.AllTimestamp = s.Data.AllTimestamp[idx:]
+	if err := s.WriteToDb(); err != nil {
+		return err
+	}
+	// now, actually delete the data
+	return s.db.Update(func(tx *bolt.Tx) error {
+		bkt := s.getBucket(tx)
+		// although we will pay attention to the error, don't let it stop us
+		var rerr error
+		for _, ts := range tsToDelete {
+			if err := bkt.Delete([]byte(strconv.FormatInt(ts, 10))); err != nil {
+				rerr = err
+			}
+		}
+		return rerr
+	})
+}
+
 func (s *State) writeToDbWithTransaction(tx *bolt.Tx) error {
 	bkt := s.getBucket(tx)
 	data, err := s.marshal()
@@ -106,4 +144,11 @@ func (s *State) writeToDbWithTransaction(tx *bolt.Tx) error {
 
 func (s *State) WriteToDb() error {
 	return s.db.Update(s.writeToDbWithTransaction)
+}
+
+func (s *State) PurgeFromDb() error {
+	return s.db.Update(func(tx *bolt.Tx) error {
+		cbkt := s.Component.getBucket(tx)
+		return cbkt.DeleteBucket(s.BucketName)
+	})
 }

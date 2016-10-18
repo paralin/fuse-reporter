@@ -16,6 +16,10 @@ message State {
   repeated int64 snapshot_timestamp = 1 [packed=true];
   repeated int64 all_timestamp = 2 [packed=true];
   stream.Config stream_config = 3;
+  // if this is a remote state, we store the latest timestamp on the remote here
+  int64 remote_timestamp = 4;
+  // Latest timestamp overall
+  int64 last_timestamp = 5;
 }
 
 message RemoteList {

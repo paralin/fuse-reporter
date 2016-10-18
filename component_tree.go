@@ -5,7 +5,8 @@ import (
 )
 
 type ComponentTree struct {
-	db *bolt.DB
+	db        *bolt.DB
+	dirtyChan chan *State
 
 	BucketName []byte
 
@@ -33,6 +34,7 @@ func (r *ComponentTree) GetComponent(componentName string) (*Component, error) {
 
 	// Attempt to load it from DB
 	component, err := LoadComponent(r.db, r.ComponentList, componentName)
+	component.dirtyChan = r.dirtyChan
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +51,7 @@ func (r *ComponentTree) CreateComponentIfNotExists(componentName string) (*Compo
 	}
 
 	component, err := CreateComponent(r.db, r.ComponentList, componentName)
+	component.dirtyChan = r.dirtyChan
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +59,22 @@ func (r *ComponentTree) CreateComponentIfNotExists(componentName string) (*Compo
 	return component, nil
 }
 
+func (r *ComponentTree) DeleteComponent(id string) error {
+	cmp, err := r.GetComponent(id)
+	if err != ComponentNotExistError {
+		return err
+	}
+	if err := r.ComponentList.remove(r.db, id); err != nil {
+		return err
+	}
+	delete(r.Components, id)
+	return cmp.PurgeFromDb()
+}
+
 func (r *ComponentTree) loadComponentList() error {
 	err := r.db.Update(func(tx *bolt.Tx) error {
-		tx.CreateBucketIfNotExists(r.BucketName)
-		return nil
+		_, err := tx.CreateBucketIfNotExists(r.BucketName)
+		return err
 	})
 	if err != nil {
 		return err

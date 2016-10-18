@@ -16,7 +16,8 @@ var componentDetailsKey []byte = []byte("component")
 
 // A instantiated component
 type Component struct {
-	db *bolt.DB
+	db        *bolt.DB
+	dirtyChan chan *State
 
 	Name          string
 	BucketName    []byte
@@ -63,10 +64,12 @@ func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Conf
 		return state, nil
 	}
 	state = &State{
-		db:         c.db,
-		Component:  c,
-		Name:       stateName,
-		BucketName: []byte(fmt.Sprintf("st.%s", stateName)),
+		db:           c.db,
+		Component:    c,
+		Name:         stateName,
+		BucketName:   []byte(fmt.Sprintf("st.%s", stateName)),
+		RemoteStates: make(map[string]*State),
+		dirtyChan:    c.dirtyChan,
 	}
 	state.Data.StreamConfig = config
 	c.db.Update(func(tx *bolt.Tx) error {
@@ -78,6 +81,29 @@ func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Conf
 	c.Data.StateName = append(c.Data.StateName, stateName)
 	c.WriteToDb()
 	return state, state.WriteToDb()
+}
+
+func (c *Component) DeleteState(stateName string) error {
+	state, err := c.GetState(stateName)
+	if err == ComponentNotExistError {
+		return nil
+	}
+	delete(c.States, stateName)
+	// delete from name list
+	for idx, nm := range c.Data.StateName {
+		if nm == stateName {
+			c.Data.StateName = append(c.Data.StateName[:idx], c.Data.StateName[idx+1:]...)
+			if err := c.WriteToDb(); err != nil {
+				return err
+			}
+		}
+	}
+	// double-check this is deleted
+	defer func() {
+		delete(c.States, stateName)
+	}()
+	// purge from db
+	return state.PurgeFromDb()
 }
 
 func (c *Component) GetState(stateName string) (*State, error) {
@@ -92,10 +118,12 @@ func (c *Component) GetState(stateName string) (*State, error) {
 
 	// Attempt to load it from DB
 	state = &State{
-		Component:  c,
-		Name:       stateName,
-		BucketName: []byte(fmt.Sprintf("st.%s", stateName)),
-		db:         c.db,
+		Component:    c,
+		Name:         stateName,
+		BucketName:   []byte(fmt.Sprintf("st.%s", stateName)),
+		db:           c.db,
+		RemoteStates: make(map[string]*State),
+		dirtyChan:    c.dirtyChan,
 	}
 	if err := state.LoadFromDb(); err != nil {
 		return nil, err
@@ -116,6 +144,12 @@ func (c *Component) WriteToDb() error {
 			return err
 		}
 		return bkt.Put(componentDetailsKey, dta)
+	})
+}
+
+func (c *Component) PurgeFromDb() error {
+	return c.db.Update(func(tx *bolt.Tx) error {
+		return tx.DeleteBucket(c.BucketName)
 	})
 }
 

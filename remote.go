@@ -10,20 +10,20 @@ import (
 )
 
 type Remote struct {
-	db *bolt.DB
-
+	db         *bolt.DB
 	RemoteList *RemoteList
 
-	Data               dbproto.Remote
-	DetailsKey         []byte
-	ComponentTree      *ComponentTree
-	LocalComponentTree *ComponentTree
+	Data           dbproto.Remote
+	DetailsKey     []byte
+	ComponentTree  *ComponentTree
+	StateDirtyChan chan *State
 
 	Manager *RemoteManager
 }
 
 // Load everything, start background manager
 func (rem *Remote) Init() error {
+	rem.StateDirtyChan = make(chan *State, 10)
 	if err := rem.LoadFromDb(); err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (c *Remote) initAllComponents() []error {
 			continue
 		}
 
-		lc, err := c.LocalComponentTree.GetComponent(comp.Name)
+		lc, err := c.RemoteList.reporter.LocalTree.GetComponent(comp.Name)
 		if err != nil {
 			rerr = append(rerr, err)
 		}
@@ -68,7 +68,7 @@ func (c *Remote) initAllComponents() []error {
 			if err := state.Backfill(ls); err != nil {
 				rerr = append(rerr, err)
 			}
-			state.RemoteStates = append(state.RemoteStates, state)
+			ls.RemoteStates[c.Data.Id] = state
 		}
 	}
 
@@ -88,6 +88,7 @@ func (c *Remote) LoadComponentTree() error {
 		return err
 	}
 	c.ComponentTree = NewComponentTree(c.db, bktName)
+	c.ComponentTree.dirtyChan = c.StateDirtyChan
 	if err := c.ComponentTree.loadComponentList(); err != nil {
 		return err
 	}

@@ -30,11 +30,6 @@ func (s *ReporterServiceServer) RecordState(c context.Context, req *api.RecordSt
 	if err != nil {
 		return nil, err
 	}
-	stream := state.Stream()
-	writeCursor, err := stream.WriteCursor()
-	if err != nil {
-		return nil, err
-	}
 
 	var reportTime time.Time
 	if req.Report.Timestamp > 0 {
@@ -55,7 +50,8 @@ func (s *ReporterServiceServer) RecordState(c context.Context, req *api.RecordSt
 	}
 
 	data = statestream.StateData(dataMap)
-	err = writeCursor.WriteState(reportTime, data, state.Data.StreamConfig.RecordRate)
+
+	err = state.WriteState(reportTime, data)
 	if err != nil {
 		return nil, err
 	}

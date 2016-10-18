@@ -55,3 +55,13 @@ func (c *ComponentList) LoadFromDb(db *bolt.DB) error {
 		return bkt.Put(componentListKey, dta)
 	})
 }
+
+func (c *ComponentList) remove(db *bolt.DB, name string) error {
+	for idx, nm := range c.Data.ComponentName {
+		if nm == name {
+			c.Data.ComponentName = append(c.Data.ComponentName[:idx], c.Data.ComponentName[idx+1:]...)
+			return c.WriteToDb(db)
+		}
+	}
+	return nil
+}
