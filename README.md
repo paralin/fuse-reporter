@@ -80,13 +80,12 @@ When calling GetRemoteConfig the reporter gives an identifier. This identifier n
 API
 ===
 
-Someone might be interested in:
+The "reporter" api is intended for local components on a system communicating with the central reporter instance.
 
- - View state at a given time (already done)
- - View latest state (live changes)
+The "view" api is intended for consumers of state information and state history. It is shared between historian and reporter, and allows:
 
-In the browser, we might be interested in fast forwarding / rewinding time, generating plots, etc. To do this, we will want to get stream entries with a certain resolution between two times. Propose adding an API to a cursor that will read forward in a stream and emit stream events with a requested rate configuration.
-
-Other things that could be useful:
-
- - Filter the emitted events to be sent down the pipe, then, send widely spaced snapshots first followed by more detailed mutations.
+ - View state at a given time
+ - View latest state
+ - View history of a state, with any desired rate configuration (server-side batching of events)
+ - Tail latest state (receive live updates)
+ - Request history between two time points at varying resolutions.
