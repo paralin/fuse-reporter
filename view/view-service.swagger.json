@@ -222,6 +222,10 @@
         },
         "query": {
           "$ref": "#/definitions/viewStateHistoryQuery"
+        },
+        "stream_config": {
+          "$ref": "#/definitions/streamConfig",
+          "title": "Optionally specify a stream config to do batching on the server"
         }
       }
     },

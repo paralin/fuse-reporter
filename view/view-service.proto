@@ -24,6 +24,8 @@ message GetStateResponse {
 message StateHistoryRequest {
   view.StateContext context = 1;
   StateHistoryQuery query = 2;
+  // Optionally specify a stream config to do batching on the server
+  stream.Config  stream_config = 3;
 }
 
 // Response in stream of state history.
