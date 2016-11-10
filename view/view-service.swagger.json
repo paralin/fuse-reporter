@@ -63,6 +63,38 @@
         ]
       }
     },
+    "/v1/view/{context.component}/{context.state_id}/boundedhistory": {
+      "get": {
+        "operationId": "GetBoundedStateHistory",
+        "responses": {
+          "200": {
+            "description": "(streaming responses)",
+            "schema": {
+              "$ref": "#/definitions/viewBoundedStateHistoryResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "context.component",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          },
+          {
+            "name": "context.state_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "ReporterService"
+        ]
+      }
+    },
     "/v1/view/{context.component}/{context.state_id}/history": {
       "get": {
         "operationId": "GetStateHistory",
@@ -97,6 +129,24 @@
     }
   },
   "definitions": {
+    "BoundedStateHistoryRequestBoundedStateHistoryMode": {
+      "type": "string",
+      "enum": [
+        "SNAPSHOT_BOUND"
+      ],
+      "default": "SNAPSHOT_BOUND"
+    },
+    "BoundedStateHistoryResponseBoundedStateHistoryStatus": {
+      "type": "string",
+      "enum": [
+        "BOUNDED_HISTORY_STATUS_NONE",
+        "BOUNDED_HISTORY_START_BOUND",
+        "BOUNDED_HISTORY_END_BOUND",
+        "BOUNDED_HISTORY_INITIAL_SET",
+        "BOUNDED_HISTORY_TAIL"
+      ],
+      "default": "BOUNDED_HISTORY_STATUS_NONE"
+    },
     "StateHistoryResponseStateHistoryStatus": {
       "type": "string",
       "enum": [
@@ -125,6 +175,32 @@
           "type": "string",
           "format": "int64",
           "title": "Minimum time between keyframes in milliseconds"
+        }
+      }
+    },
+    "viewBoundedStateHistoryRequest": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#/definitions/viewStateContext"
+        },
+        "mid_timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "mode": {
+          "$ref": "#/definitions/BoundedStateHistoryRequestBoundedStateHistoryMode"
+        }
+      }
+    },
+    "viewBoundedStateHistoryResponse": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/viewStateEntry"
+        },
+        "status": {
+          "$ref": "#/definitions/BoundedStateHistoryResponseBoundedStateHistoryStatus"
         }
       }
     },

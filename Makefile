@@ -18,3 +18,4 @@ protogen:
 	rm ./dbproto/*.swagger.json
 	go install -v github.com/fuserobotics/reporter/dbproto
 	go install -v github.com/fuserobotics/reporter/remote
+	go install -v github.com/fuserobotics/reporter/view

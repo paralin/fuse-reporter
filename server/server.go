@@ -26,6 +26,7 @@ var RuntimeArgs struct {
 	HttpPort       int
 	DbPath         string
 	HostIdentifier string
+	DisableRemotes bool
 }
 
 var reporterInstance *reporter.Reporter
@@ -35,6 +36,7 @@ func bindFlags() {
 	flag.IntVar(&RuntimeArgs.HttpPort, "httpport", 8085, "HTTP port to bind")
 	flag.StringVar(&RuntimeArgs.DbPath, "dbpath", "reporter.db", "Database path")
 	flag.StringVar(&RuntimeArgs.HostIdentifier, "ident", "", "Host identifier")
+	flag.BoolVar(&RuntimeArgs.DisableRemotes, "noremotes", false, "Flag to disable pushing to remotes.")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`reporter
 Starts the API at the ports specified.
@@ -45,7 +47,7 @@ Flags:`)
 }
 
 func initReporter() error {
-	ri, err := reporter.NewReporter(RuntimeArgs.HostIdentifier, RuntimeArgs.DbPath)
+	ri, err := reporter.NewReporter(RuntimeArgs.HostIdentifier, RuntimeArgs.DbPath, !RuntimeArgs.DisableRemotes)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/fuserobotics/reporter/dbproto"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -30,7 +31,11 @@ func (rem *Remote) Init() error {
 	if err := rem.LoadComponentTree(); err != nil {
 		return err
 	}
-	rem.Manager.Start()
+	if rem.RemoteList.reporter.enableRemotes {
+		rem.Manager.Start()
+	} else {
+		glog.Infof("Not starting remote manager for %s due to noremotes flag.", rem.Data.Id)
+	}
 	return nil
 }
 

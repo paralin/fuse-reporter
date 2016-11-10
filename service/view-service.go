@@ -120,3 +120,21 @@ func (s *ViewServiceServer) GetStateHistory(req *view.StateHistoryRequest, srvst
 
 	return history.HandleStateHistoryRequest(req, srvstream, state.Stream())
 }
+
+func (s *ViewServiceServer) GetBoundedStateHistory(req *view.BoundedStateHistoryRequest, srvstream view.ReporterService_GetBoundedStateHistoryServer) error {
+	if err := req.Context.Validate(false); err != nil {
+		return err
+	}
+
+	component, err := s.Reporter.LocalTree.GetComponent(req.Context.Component)
+	if err != nil {
+		return err
+	}
+
+	state, err := component.GetState(req.Context.StateId)
+	if err != nil {
+		return err
+	}
+
+	return history.HandleBoundedHistoryQuery(req, srvstream, state.Stream())
+}

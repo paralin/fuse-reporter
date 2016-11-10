@@ -24,13 +24,14 @@ func (s *State) GetSnapshotBefore(timestamp time.Time) (*stream.StreamEntry, err
 	idx := sort.Search(snapshotCount, func(i int) bool {
 		return s.Data.SnapshotTimestamp[snapshotCount-i-1] < timeNum
 	})
+	// Idx is from the end backwards.
 	if idx < 0 || idx >= snapshotCount {
 		return nil, nil
 	}
-	if s.Data.SnapshotTimestamp[idx] >= timeNum {
+	if s.Data.SnapshotTimestamp[snapshotCount-idx-1] >= timeNum {
 		return nil, nil
 	}
-	return s.getEntry(s.Data.SnapshotTimestamp[idx])
+	return s.getEntry(s.Data.SnapshotTimestamp[snapshotCount-idx-1])
 }
 
 func (s *State) getEntry(timestamp int64) (*stream.StreamEntry, error) {

@@ -14,6 +14,7 @@ type Reporter struct {
 	dbPath         string
 	db             *bolt.DB
 	hostIdentifier string
+	enableRemotes  bool
 
 	LocalTree  *ComponentTree
 	RemoteList *RemoteList
@@ -30,8 +31,8 @@ func (r *Reporter) openDb() error {
 	return nil
 }
 
-func NewReporter(hostIdentifier, dbPath string) (*Reporter, error) {
-	res := &Reporter{dbPath: dbPath, hostIdentifier: hostIdentifier}
+func NewReporter(hostIdentifier, dbPath string, enableRemotes bool) (*Reporter, error) {
+	res := &Reporter{dbPath: dbPath, hostIdentifier: hostIdentifier, enableRemotes: enableRemotes}
 	if err := res.openDb(); err != nil {
 		return nil, err
 	}

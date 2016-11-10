@@ -44,6 +44,29 @@ message StateHistoryResponse {
   }
 }
 
+message BoundedStateHistoryRequest {
+  view.StateContext context = 1;
+  BoundedStateHistoryMode mode = 2;
+  int64 mid_timestamp = 3;
+
+  enum BoundedStateHistoryMode {
+    SNAPSHOT_BOUND = 0;
+  }
+}
+
+message BoundedStateHistoryResponse {
+  view.StateEntry state = 1;
+  BoundedStateHistoryStatus status = 2;
+
+  enum BoundedStateHistoryStatus {
+    BOUNDED_HISTORY_STATUS_NONE = 0;
+    BOUNDED_HISTORY_START_BOUND = 1;
+    BOUNDED_HISTORY_END_BOUND = 2;
+    BOUNDED_HISTORY_INITIAL_SET = 3;
+    BOUNDED_HISTORY_TAIL = 4;
+  }
+}
+
 service ReporterService {
   rpc ListStates(ListStatesRequest) returns (ListStatesResponse) {
     option (google.api.http) = {
@@ -58,6 +81,11 @@ service ReporterService {
   rpc GetStateHistory(StateHistoryRequest) returns (stream StateHistoryResponse) {
     option (google.api.http) = {
       get: "/v1/view/{context.component}/{context.state_id}/history"
+    };
+  };
+  rpc GetBoundedStateHistory(BoundedStateHistoryRequest) returns (stream BoundedStateHistoryResponse) {
+    option (google.api.http) = {
+      get: "/v1/view/{context.component}/{context.state_id}/boundedhistory"
     };
   };
 }

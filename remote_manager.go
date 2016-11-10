@@ -290,15 +290,21 @@ func (m *RemoteManager) update() bool {
 	// Do this frequently to avoid a block
 	m.flushDirtyChan(true)
 	if m.r.Data.StreamConfig == nil {
-		glog.Infof("Querying %s for config...", m.r.Data.Config.Endpoint)
+		if glog.V(glog.Level(4)) {
+			glog.Infof("Querying %s for config...", m.r.Data.Config.Endpoint)
+		}
 		if err := m.queryConfig(); err != nil {
-			glog.Warningf("Failed to get config, %v.", err)
+			if glog.V(glog.Level(4)) {
+				glog.Warningf("Failed to get config, %v.", err)
+			}
 			m.conn.Close()
 			m.conn = nil
 			m.client = nil
 			return !m.shouldStopTimeout(time.Duration(5) * time.Second)
 		}
-		glog.Infof("Got from %s config with crc %d.", m.r.Data.Config.Endpoint, m.r.Data.StreamConfig.Crc32)
+		if glog.V(glog.Level(4)) {
+			glog.Infof("Got from %s config with crc %d.", m.r.Data.Config.Endpoint, m.r.Data.StreamConfig.Crc32)
+		}
 		if err := m.syncRemoteConfig(); err != nil {
 			glog.Warningf("Error when syncing remote config, %v - continuing, but beware.", err)
 		}
