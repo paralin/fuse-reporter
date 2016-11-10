@@ -106,7 +106,7 @@ Response messages:
  - END_BOUND with end bound. If null, is a tailing call.
  - INITIAL_SET with each known entry.
  - TAIL with nil to signal end of initial set
- - TAIL with each new entry, until...
+ - TAIL with each new entry, if needed until...
  - END_BOUND with ending snapshot after tailing.
 
 Whereas the state history call requests a history with a specific rate config, and re-builds each entry, bounded state history call sticks strictly to the entry stream from the backend. This way the data in the browser will exactly match the data in the backend, but can be fetched in partials.

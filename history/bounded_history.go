@@ -87,17 +87,17 @@ func HandleBoundedHistoryQuery(req *view.BoundedStateHistoryRequest, srvstream v
 		lastEntryTimestamp = nextEntry.Timestamp
 	}
 
-	// Do we need to tail?
-	if endEntry != nil {
-		return nil
-	}
-
 	// Signal to the client the initial set is done
 	if err := srvstream.Send(&view.BoundedStateHistoryResponse{
 		State:  nil,
 		Status: view.BoundedStateHistoryResponse_BOUNDED_HISTORY_TAIL,
 	}); err != nil {
 		return err
+	}
+
+	// Do we need to tail?
+	if endEntry != nil {
+		return nil
 	}
 
 	// if we need to tail, grab the write cursor.
