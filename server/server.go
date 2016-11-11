@@ -169,5 +169,6 @@ func main() {
 	<-sigs
 
 	glog.Info("Exiting...")
-	grpcServer.GracefulStop()
+	grpcServer.Stop()
+	os.Exit(0)
 }
