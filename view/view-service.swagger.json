@@ -181,6 +181,10 @@
     "viewBoundedStateHistoryRequest": {
       "type": "object",
       "properties": {
+        "bounds_only": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "context": {
           "$ref": "#/definitions/viewStateContext"
         },

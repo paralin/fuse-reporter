@@ -55,6 +55,10 @@ func HandleBoundedHistoryQuery(req *view.BoundedStateHistoryRequest, srvstream v
 		return err
 	}
 
+	if req.BoundsOnly {
+		return nil
+	}
+
 	// Now, push the data we already have.
 	doneChan := srvstream.Context().Done()
 	lastEntryTimestamp := startEntry.Timestamp

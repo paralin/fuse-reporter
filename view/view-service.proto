@@ -48,6 +48,7 @@ message BoundedStateHistoryRequest {
   view.StateContext context = 1;
   BoundedStateHistoryMode mode = 2;
   int64 mid_timestamp = 3;
+  bool bounds_only = 4;
 
   enum BoundedStateHistoryMode {
     SNAPSHOT_BOUND = 0;
