@@ -122,7 +122,7 @@ func (m *RemoteManager) syncRemoteConfig() error {
 		if err != nil {
 			return err
 		}
-		st, err := cmp.CreateStateIfNotExists(comp.StateId, comp.Config)
+		st, err := cmp.CreateStateIfNotExists(comp.StateId, comp.Config, nil)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func (m *RemoteManager) syncRemoteConfig() error {
 		if err != nil {
 			return err
 		}
-		lst, err := lcmp.CreateStateIfNotExists(comp.StateId, comp.Config)
+		lst, err := lcmp.CreateStateIfNotExists(comp.StateId, comp.Config, nil)
 		if err != nil {
 			return err
 		}

@@ -58,7 +58,7 @@ func (c *Component) hasState(stateName string) bool {
 	return false
 }
 
-func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Config) (*State, error) {
+func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Config, initialEntry *stream.StreamEntry) (*State, error) {
 	state, err := c.GetState(stateName)
 	if err == nil {
 		return state, nil
@@ -79,7 +79,15 @@ func (c *Component) CreateStateIfNotExists(stateName string, config *stream.Conf
 	c.States[stateName] = state
 	c.Data.StateName = append(c.Data.StateName, stateName)
 	c.WriteToDb()
-	return state, state.WriteToDb()
+	if err := state.WriteToDb(); err != nil {
+		return nil, err
+	}
+	if initialEntry != nil {
+		if err := state.WriteEntry(initialEntry); err != nil {
+			return nil, err
+		}
+	}
+	return state, nil
 }
 
 func (c *Component) ReleaseAllStates() {

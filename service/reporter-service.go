@@ -50,8 +50,11 @@ func (s *ReporterServiceServer) RecordState(c context.Context, req *api.RecordSt
 		return nil, errors.New("No data specified in the report.")
 	}
 
-	data = statestream.StateData(dataMap)
+	if dataMap == nil {
+		return nil, errors.New("Data cannot be null.")
+	}
 
+	data = statestream.StateData(dataMap)
 	err = state.WriteState(reportTime, data)
 	if err != nil {
 		return nil, err
@@ -68,7 +71,11 @@ func (s *ReporterServiceServer) RegisterState(c context.Context, req *api.Regist
 	if err != nil {
 		return nil, err
 	}
-	_, err = component.CreateStateIfNotExists(req.Context.StateId, req.StreamConfig)
+	_, err = component.CreateStateIfNotExists(req.Context.StateId, req.StreamConfig, &statestream.StreamEntry{
+		Data:      statestream.StateData(make(map[string]interface{})),
+		Timestamp: time.Now(),
+		Type:      statestream.StreamEntrySnapshot,
+	})
 	if err != nil {
 		return nil, err
 	}
