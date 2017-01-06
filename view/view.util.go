@@ -1,7 +1,11 @@
 package view
 
 import (
+	"encoding/json"
 	"errors"
+
+	"github.com/fuserobotics/reporter/util"
+	sstream "github.com/fuserobotics/statestream"
 )
 
 func (report *StateReport) Validate() error {
@@ -52,4 +56,16 @@ func (r *StateHistoryQuery) Validate() error {
 		return errors.New("BeginTime cannot be greater than EndTime.")
 	}
 	return nil
+}
+
+func (e *StateEntry) DecodeStreamEntry() (*sstream.StreamEntry, error) {
+	res := &sstream.StreamEntry{
+		Timestamp: util.NumberToTime(e.Timestamp),
+		Type:      sstream.StreamEntryType(e.Type),
+	}
+	res.Data = make(map[string]interface{})
+	if err := json.Unmarshal([]byte(e.JsonState), map[string]interface{}(res.Data)); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
