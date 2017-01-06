@@ -166,34 +166,34 @@
     "streamRateConfig": {
       "type": "object",
       "properties": {
-        "change_frequency": {
-          "type": "string",
-          "format": "int64",
-          "title": "Minimum time between mutations in milliseconds"
-        },
         "keyframe_frequency": {
           "type": "string",
           "format": "int64",
           "title": "Minimum time between keyframes in milliseconds"
+        },
+        "change_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
         }
       }
     },
     "viewBoundedStateHistoryRequest": {
       "type": "object",
       "properties": {
-        "bounds_only": {
-          "type": "boolean",
-          "format": "boolean"
-        },
         "context": {
           "$ref": "#/definitions/viewStateContext"
+        },
+        "mode": {
+          "$ref": "#/definitions/BoundedStateHistoryRequestBoundedStateHistoryMode"
         },
         "mid_timestamp": {
           "type": "string",
           "format": "int64"
         },
-        "mode": {
-          "$ref": "#/definitions/BoundedStateHistoryRequestBoundedStateHistoryMode"
+        "bounds_only": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -241,11 +241,11 @@
     "viewStateContext": {
       "type": "object",
       "properties": {
-        "component": {
+        "host_identifier": {
           "type": "string",
           "format": "string"
         },
-        "host_identifier": {
+        "component": {
           "type": "string",
           "format": "string"
         },
@@ -335,10 +335,6 @@
     "viewStateListComponent": {
       "type": "object",
       "properties": {
-        "host_identifier": {
-          "type": "string",
-          "format": "string"
-        },
         "name": {
           "type": "string",
           "format": "string"
@@ -348,18 +344,22 @@
           "items": {
             "$ref": "#/definitions/viewStateListState"
           }
+        },
+        "host_identifier": {
+          "type": "string",
+          "format": "string"
         }
       }
     },
     "viewStateListState": {
       "type": "object",
       "properties": {
-        "config": {
-          "$ref": "#/definitions/streamConfig"
-        },
         "name": {
           "type": "string",
           "format": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/streamConfig"
         }
       }
     },

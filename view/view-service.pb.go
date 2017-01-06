@@ -246,6 +246,13 @@ func (m *StateHistoryResponse) GetState() *StateEntry {
 	return nil
 }
 
+func (m *StateHistoryResponse) GetStatus() StateHistoryResponse_StateHistoryStatus {
+	if m != nil {
+		return m.Status
+	}
+	return StateHistoryResponse_HISTORY_INITIAL_SET
+}
+
 type BoundedStateHistoryRequest struct {
 	Context      *StateContext                                      `protobuf:"bytes,1,opt,name=context" json:"context,omitempty"`
 	Mode         BoundedStateHistoryRequest_BoundedStateHistoryMode `protobuf:"varint,2,opt,name=mode,enum=view.BoundedStateHistoryRequest_BoundedStateHistoryMode" json:"mode,omitempty"`
@@ -265,6 +272,27 @@ func (m *BoundedStateHistoryRequest) GetContext() *StateContext {
 	return nil
 }
 
+func (m *BoundedStateHistoryRequest) GetMode() BoundedStateHistoryRequest_BoundedStateHistoryMode {
+	if m != nil {
+		return m.Mode
+	}
+	return BoundedStateHistoryRequest_SNAPSHOT_BOUND
+}
+
+func (m *BoundedStateHistoryRequest) GetMidTimestamp() int64 {
+	if m != nil {
+		return m.MidTimestamp
+	}
+	return 0
+}
+
+func (m *BoundedStateHistoryRequest) GetBoundsOnly() bool {
+	if m != nil {
+		return m.BoundsOnly
+	}
+	return false
+}
+
 type BoundedStateHistoryResponse struct {
 	State  *StateEntry                                           `protobuf:"bytes,1,opt,name=state" json:"state,omitempty"`
 	Status BoundedStateHistoryResponse_BoundedStateHistoryStatus `protobuf:"varint,2,opt,name=status,enum=view.BoundedStateHistoryResponse_BoundedStateHistoryStatus" json:"status,omitempty"`
@@ -280,6 +308,13 @@ func (m *BoundedStateHistoryResponse) GetState() *StateEntry {
 		return m.State
 	}
 	return nil
+}
+
+func (m *BoundedStateHistoryResponse) GetStatus() BoundedStateHistoryResponse_BoundedStateHistoryStatus {
+	if m != nil {
+		return m.Status
+	}
+	return BoundedStateHistoryResponse_BOUNDED_HISTORY_STATUS_NONE
 }
 
 func init() {
@@ -302,7 +337,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for ReporterService service
 
@@ -519,7 +554,7 @@ var _ReporterService_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: fileDescriptor0,
+	Metadata: "github.com/fuserobotics/reporter/view/view-service.proto",
 }
 
 func init() {

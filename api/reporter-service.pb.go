@@ -153,6 +153,13 @@ func (m *CreateRemoteRequest) GetContext() *RemoteContext {
 	return nil
 }
 
+func (m *CreateRemoteRequest) GetEndpoint() string {
+	if m != nil {
+		return m.Endpoint
+	}
+	return ""
+}
+
 type CreateRemoteResponse struct {
 }
 
@@ -178,7 +185,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for ReporterService service
 
@@ -340,7 +347,7 @@ var _ReporterService_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor0,
+	Metadata: "github.com/fuserobotics/reporter/api/reporter-service.proto",
 }
 
 func init() {

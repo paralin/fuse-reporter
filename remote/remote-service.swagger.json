@@ -80,12 +80,12 @@
           "type": "string",
           "format": "string"
         },
-        "config": {
-          "$ref": "#/definitions/streamConfig"
-        },
         "state_id": {
           "type": "string",
           "format": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/streamConfig"
         }
       }
     },
@@ -108,15 +108,15 @@
     "remotePushStreamEntryRequest": {
       "type": "object",
       "properties": {
-        "config_crc32": {
-          "type": "integer",
-          "format": "int32"
-        },
         "context": {
           "$ref": "#/definitions/remoteRequestContext"
         },
         "entry": {
           "$ref": "#/definitions/remoteRemoteStreamEntry"
+        },
+        "config_crc32": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -147,6 +147,10 @@
     "remoteRemoteStreamEntry": {
       "type": "object",
       "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
         "entry_type": {
           "type": "integer",
           "format": "int32"
@@ -154,21 +158,17 @@
         "json_data": {
           "type": "string",
           "format": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "int64"
         }
       }
     },
     "remoteRequestContext": {
       "type": "object",
       "properties": {
-        "component_id": {
+        "host_identifier": {
           "type": "string",
           "format": "string"
         },
-        "host_identifier": {
+        "component_id": {
           "type": "string",
           "format": "string"
         },
@@ -189,15 +189,15 @@
     "streamRateConfig": {
       "type": "object",
       "properties": {
-        "change_frequency": {
-          "type": "string",
-          "format": "int64",
-          "title": "Minimum time between mutations in milliseconds"
-        },
         "keyframe_frequency": {
           "type": "string",
           "format": "int64",
           "title": "Minimum time between keyframes in milliseconds"
+        },
+        "change_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
         }
       }
     }

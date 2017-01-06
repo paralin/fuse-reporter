@@ -25,6 +25,27 @@ func (m *StateContext) String() string            { return proto.CompactTextStri
 func (*StateContext) ProtoMessage()               {}
 func (*StateContext) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
 
+func (m *StateContext) GetHostIdentifier() string {
+	if m != nil {
+		return m.HostIdentifier
+	}
+	return ""
+}
+
+func (m *StateContext) GetComponent() string {
+	if m != nil {
+		return m.Component
+	}
+	return ""
+}
+
+func (m *StateContext) GetStateId() string {
+	if m != nil {
+		return m.StateId
+	}
+	return ""
+}
+
 type StateList struct {
 	Components []*StateListComponent `protobuf:"bytes,1,rep,name=components" json:"components,omitempty"`
 }
@@ -52,11 +73,25 @@ func (m *StateListComponent) String() string            { return proto.CompactTe
 func (*StateListComponent) ProtoMessage()               {}
 func (*StateListComponent) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
 
+func (m *StateListComponent) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 func (m *StateListComponent) GetStates() []*StateListState {
 	if m != nil {
 		return m.States
 	}
 	return nil
+}
+
+func (m *StateListComponent) GetHostIdentifier() string {
+	if m != nil {
+		return m.HostIdentifier
+	}
+	return ""
 }
 
 type StateListState struct {
@@ -68,6 +103,13 @@ func (m *StateListState) Reset()                    { *m = StateListState{} }
 func (m *StateListState) String() string            { return proto.CompactTextString(m) }
 func (*StateListState) ProtoMessage()               {}
 func (*StateListState) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
+
+func (m *StateListState) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
 
 func (m *StateListState) GetConfig() *stream.Config {
 	if m != nil {
@@ -86,6 +128,13 @@ func (m *StateQuery) String() string            { return proto.CompactTextString
 func (*StateQuery) ProtoMessage()               {}
 func (*StateQuery) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{4} }
 
+func (m *StateQuery) GetTime() int64 {
+	if m != nil {
+		return m.Time
+	}
+	return 0
+}
+
 // Query a range of time.
 type StateHistoryQuery struct {
 	// Begin time, or the entire history if zero.
@@ -101,6 +150,27 @@ func (m *StateHistoryQuery) String() string            { return proto.CompactTex
 func (*StateHistoryQuery) ProtoMessage()               {}
 func (*StateHistoryQuery) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{5} }
 
+func (m *StateHistoryQuery) GetBeginTime() int64 {
+	if m != nil {
+		return m.BeginTime
+	}
+	return 0
+}
+
+func (m *StateHistoryQuery) GetEndTime() int64 {
+	if m != nil {
+		return m.EndTime
+	}
+	return 0
+}
+
+func (m *StateHistoryQuery) GetTail() bool {
+	if m != nil {
+		return m.Tail
+	}
+	return false
+}
+
 // A state report message
 type StateReport struct {
 	JsonState string `protobuf:"bytes,1,opt,name=json_state,json=jsonState" json:"json_state,omitempty"`
@@ -111,6 +181,20 @@ func (m *StateReport) Reset()                    { *m = StateReport{} }
 func (m *StateReport) String() string            { return proto.CompactTextString(m) }
 func (*StateReport) ProtoMessage()               {}
 func (*StateReport) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{6} }
+
+func (m *StateReport) GetJsonState() string {
+	if m != nil {
+		return m.JsonState
+	}
+	return ""
+}
+
+func (m *StateReport) GetTimestamp() int64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
 
 // A state entry message
 type StateEntry struct {
@@ -123,6 +207,27 @@ func (m *StateEntry) Reset()                    { *m = StateEntry{} }
 func (m *StateEntry) String() string            { return proto.CompactTextString(m) }
 func (*StateEntry) ProtoMessage()               {}
 func (*StateEntry) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{7} }
+
+func (m *StateEntry) GetJsonState() string {
+	if m != nil {
+		return m.JsonState
+	}
+	return ""
+}
+
+func (m *StateEntry) GetTimestamp() int64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *StateEntry) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
 
 func init() {
 	proto.RegisterType((*StateContext)(nil), "view.StateContext")

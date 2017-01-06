@@ -46,7 +46,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiRecordStateRequest"
+              "$ref": "#/definitions/viewStateReport"
             }
           }
         ],
@@ -86,7 +86,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiRegisterStateRequest"
+              "$ref": "#/definitions/streamConfig"
             }
           }
         ],
@@ -135,7 +135,8 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apiCreateRemoteRequest"
+              "type": "string",
+              "format": "string"
             }
           }
         ],
@@ -248,15 +249,15 @@
     "streamRateConfig": {
       "type": "object",
       "properties": {
-        "change_frequency": {
-          "type": "string",
-          "format": "int64",
-          "title": "Minimum time between mutations in milliseconds"
-        },
         "keyframe_frequency": {
           "type": "string",
           "format": "int64",
           "title": "Minimum time between keyframes in milliseconds"
+        },
+        "change_frequency": {
+          "type": "string",
+          "format": "int64",
+          "title": "Minimum time between mutations in milliseconds"
         }
       }
     },
@@ -274,10 +275,6 @@
     "viewStateListComponent": {
       "type": "object",
       "properties": {
-        "host_identifier": {
-          "type": "string",
-          "format": "string"
-        },
         "name": {
           "type": "string",
           "format": "string"
@@ -287,18 +284,22 @@
           "items": {
             "$ref": "#/definitions/viewStateListState"
           }
+        },
+        "host_identifier": {
+          "type": "string",
+          "format": "string"
         }
       }
     },
     "viewStateListState": {
       "type": "object",
       "properties": {
-        "config": {
-          "$ref": "#/definitions/streamConfig"
-        },
         "name": {
           "type": "string",
           "format": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/streamConfig"
         }
       }
     },

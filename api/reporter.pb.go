@@ -24,6 +24,13 @@ func (m *RemoteContext) String() string            { return proto.CompactTextStr
 func (*RemoteContext) ProtoMessage()               {}
 func (*RemoteContext) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
 
+func (m *RemoteContext) GetRemoteId() string {
+	if m != nil {
+		return m.RemoteId
+	}
+	return ""
+}
+
 func (m *RemoteContext) GetStateContext() *StateContext {
 	if m != nil {
 		return m.StateContext
@@ -40,6 +47,20 @@ func (m *StateContext) Reset()                    { *m = StateContext{} }
 func (m *StateContext) String() string            { return proto.CompactTextString(m) }
 func (*StateContext) ProtoMessage()               {}
 func (*StateContext) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
+
+func (m *StateContext) GetComponent() string {
+	if m != nil {
+		return m.Component
+	}
+	return ""
+}
+
+func (m *StateContext) GetStateId() string {
+	if m != nil {
+		return m.StateId
+	}
+	return ""
+}
 
 type RemoteList struct {
 	Remotes map[string]*view.StateList `protobuf:"bytes,1,rep,name=remotes" json:"remotes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`

@@ -83,10 +83,10 @@ service ReporterService {
     option (google.api.http) = {
       get: "/v1/view/{context.component}/{context.state_id}/history"
     };
-  };
+  }
   rpc GetBoundedStateHistory(BoundedStateHistoryRequest) returns (stream BoundedStateHistoryResponse) {
     option (google.api.http) = {
       get: "/v1/view/{context.component}/{context.state_id}/boundedhistory"
     };
-  };
+  }
 }

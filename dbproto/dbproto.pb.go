@@ -45,6 +45,13 @@ func (m *ComponentList) String() string            { return proto.CompactTextStr
 func (*ComponentList) ProtoMessage()               {}
 func (*ComponentList) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
+func (m *ComponentList) GetComponentName() []string {
+	if m != nil {
+		return m.ComponentName
+	}
+	return nil
+}
+
 type Component struct {
 	StateName []string `protobuf:"bytes,1,rep,name=state_name,json=stateName" json:"state_name,omitempty"`
 }
@@ -53,6 +60,13 @@ func (m *Component) Reset()                    { *m = Component{} }
 func (m *Component) String() string            { return proto.CompactTextString(m) }
 func (*Component) ProtoMessage()               {}
 func (*Component) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+func (m *Component) GetStateName() []string {
+	if m != nil {
+		return m.StateName
+	}
+	return nil
+}
 
 type State struct {
 	SnapshotTimestamp []int64        `protobuf:"varint,1,rep,packed,name=snapshot_timestamp,json=snapshotTimestamp" json:"snapshot_timestamp,omitempty"`
@@ -69,11 +83,39 @@ func (m *State) String() string            { return proto.CompactTextString(m) }
 func (*State) ProtoMessage()               {}
 func (*State) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
 
+func (m *State) GetSnapshotTimestamp() []int64 {
+	if m != nil {
+		return m.SnapshotTimestamp
+	}
+	return nil
+}
+
+func (m *State) GetAllTimestamp() []int64 {
+	if m != nil {
+		return m.AllTimestamp
+	}
+	return nil
+}
+
 func (m *State) GetStreamConfig() *stream.Config {
 	if m != nil {
 		return m.StreamConfig
 	}
 	return nil
+}
+
+func (m *State) GetRemoteTimestamp() int64 {
+	if m != nil {
+		return m.RemoteTimestamp
+	}
+	return 0
+}
+
+func (m *State) GetLastTimestamp() int64 {
+	if m != nil {
+		return m.LastTimestamp
+	}
+	return 0
 }
 
 type RemoteList struct {
@@ -84,6 +126,13 @@ func (m *RemoteList) Reset()                    { *m = RemoteList{} }
 func (m *RemoteList) String() string            { return proto.CompactTextString(m) }
 func (*RemoteList) ProtoMessage()               {}
 func (*RemoteList) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *RemoteList) GetRemoteId() []string {
+	if m != nil {
+		return m.RemoteId
+	}
+	return nil
+}
 
 type Remote struct {
 	Id           string                     `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
@@ -96,6 +145,13 @@ func (m *Remote) Reset()                    { *m = Remote{} }
 func (m *Remote) String() string            { return proto.CompactTextString(m) }
 func (*Remote) ProtoMessage()               {}
 func (*Remote) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *Remote) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
 
 func (m *Remote) GetConfig() *RemoteConfig {
 	if m != nil {
@@ -127,6 +183,13 @@ func (m *RemoteConfig) String() string            { return proto.CompactTextStri
 func (*RemoteConfig) ProtoMessage()               {}
 func (*RemoteConfig) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
 
+func (m *RemoteConfig) GetEndpoint() string {
+	if m != nil {
+		return m.Endpoint
+	}
+	return ""
+}
+
 type RemoteState struct {
 	ComponentName string `protobuf:"bytes,1,opt,name=component_name,json=componentName" json:"component_name,omitempty"`
 	StateName     string `protobuf:"bytes,2,opt,name=state_name,json=stateName" json:"state_name,omitempty"`
@@ -136,6 +199,20 @@ func (m *RemoteState) Reset()                    { *m = RemoteState{} }
 func (m *RemoteState) String() string            { return proto.CompactTextString(m) }
 func (*RemoteState) ProtoMessage()               {}
 func (*RemoteState) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+
+func (m *RemoteState) GetComponentName() string {
+	if m != nil {
+		return m.ComponentName
+	}
+	return ""
+}
+
+func (m *RemoteState) GetStateName() string {
+	if m != nil {
+		return m.StateName
+	}
+	return ""
+}
 
 func init() {
 	proto.RegisterType((*ComponentList)(nil), "dbproto.ComponentList")

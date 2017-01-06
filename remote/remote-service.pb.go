@@ -52,6 +52,27 @@ func (m *RemoteStreamEntry) String() string            { return proto.CompactTex
 func (*RemoteStreamEntry) ProtoMessage()               {}
 func (*RemoteStreamEntry) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
+func (m *RemoteStreamEntry) GetTimestamp() int64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *RemoteStreamEntry) GetEntryType() int32 {
+	if m != nil {
+		return m.EntryType
+	}
+	return 0
+}
+
+func (m *RemoteStreamEntry) GetJsonData() string {
+	if m != nil {
+		return m.JsonData
+	}
+	return ""
+}
+
 type RemoteStreamConfig struct {
 	Crc32   int32                        `protobuf:"varint,1,opt,name=crc32" json:"crc32,omitempty"`
 	Streams []*RemoteStreamConfig_Stream `protobuf:"bytes,2,rep,name=streams" json:"streams,omitempty"`
@@ -61,6 +82,13 @@ func (m *RemoteStreamConfig) Reset()                    { *m = RemoteStreamConfi
 func (m *RemoteStreamConfig) String() string            { return proto.CompactTextString(m) }
 func (*RemoteStreamConfig) ProtoMessage()               {}
 func (*RemoteStreamConfig) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+func (m *RemoteStreamConfig) GetCrc32() int32 {
+	if m != nil {
+		return m.Crc32
+	}
+	return 0
+}
 
 func (m *RemoteStreamConfig) GetStreams() []*RemoteStreamConfig_Stream {
 	if m != nil {
@@ -80,6 +108,20 @@ func (m *RemoteStreamConfig_Stream) String() string            { return proto.Co
 func (*RemoteStreamConfig_Stream) ProtoMessage()               {}
 func (*RemoteStreamConfig_Stream) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1, 0} }
 
+func (m *RemoteStreamConfig_Stream) GetComponentId() string {
+	if m != nil {
+		return m.ComponentId
+	}
+	return ""
+}
+
+func (m *RemoteStreamConfig_Stream) GetStateId() string {
+	if m != nil {
+		return m.StateId
+	}
+	return ""
+}
+
 func (m *RemoteStreamConfig_Stream) GetConfig() *stream.Config {
 	if m != nil {
 		return m.Config
@@ -97,6 +139,27 @@ func (m *RequestContext) Reset()                    { *m = RequestContext{} }
 func (m *RequestContext) String() string            { return proto.CompactTextString(m) }
 func (*RequestContext) ProtoMessage()               {}
 func (*RequestContext) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *RequestContext) GetHostIdentifier() string {
+	if m != nil {
+		return m.HostIdentifier
+	}
+	return ""
+}
+
+func (m *RequestContext) GetComponentId() string {
+	if m != nil {
+		return m.ComponentId
+	}
+	return ""
+}
+
+func (m *RequestContext) GetStateId() string {
+	if m != nil {
+		return m.StateId
+	}
+	return ""
+}
 
 type GetRemoteConfigRequest struct {
 	Context *RequestContext `protobuf:"bytes,1,opt,name=context" json:"context,omitempty"`
@@ -155,6 +218,13 @@ func (m *PushStreamEntryRequest) GetEntry() *RemoteStreamEntry {
 	return nil
 }
 
+func (m *PushStreamEntryRequest) GetConfigCrc32() int32 {
+	if m != nil {
+		return m.ConfigCrc32
+	}
+	return 0
+}
+
 type PushStreamEntryResponse struct {
 	// If the crc32 provided is wrong, will return config
 	Config *RemoteStreamConfig `protobuf:"bytes,1,opt,name=config" json:"config,omitempty"`
@@ -189,7 +259,7 @@ var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion3
+const _ = grpc.SupportPackageIsVersion4
 
 // Client API for ReporterRemoteService service
 
@@ -285,7 +355,7 @@ var _ReporterRemoteService_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: fileDescriptor0,
+	Metadata: "github.com/fuserobotics/reporter/remote/remote-service.proto",
 }
 
 func init() {
